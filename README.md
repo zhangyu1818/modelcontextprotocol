@@ -2,7 +2,7 @@
 
 An MCP server implementation that integrates the Sonar API to provide Claude with unparalleled real-time, web-wide research.
 
-![Demo](assets/demo_screenshot.png)
+![Demo](perplexity-ask/assets/demo_screenshot.png)
 
 
 ## Tools
@@ -101,11 +101,11 @@ docker build -t mcp/perplexity-ask:latest -f src/perplexity-ask/Dockerfile .
 
 Let’s make sure Claude for Desktop is picking up the two tools we’ve exposed in our `perplexity-ask` server. You can do this by looking for the hammer icon:
 
-![Claude Visual Tools](assets/visual-indicator-mcp-tools.png)
+![Claude Visual Tools](perplexity-ask/assets/visual-indicator-mcp-tools.png)
 
 After clicking on the hammer icon, you should see the tools that come with the Filesystem MCP Server:
 
-![Available Integration](assets/available_tools.png)
+![Available Integration](perplexity-ask/assets/available_tools.png)
 
 If you see both of these this means that the integration is active. Congratulations! This means Claude can now ask Perplexity. You can then simply use it as you would use the Perplexity web app.  
 
