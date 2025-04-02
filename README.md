@@ -73,7 +73,7 @@ cd modelcontextprotocol/perplexity-ask && npm install
       "command": "npx",
       "args": [
         "-y",
-        "@modelcontextprotocol/server-perplexity-ask"
+        "server-perplexity-ask"
       ],
       "env": {
         "PERPLEXITY_API_KEY": "YOUR_API_KEY_HERE"

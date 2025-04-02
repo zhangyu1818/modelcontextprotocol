@@ -1,12 +1,25 @@
 {
-  "name": "@modelcontextprotocol/server-perplexity-ask",
+  "name": "server-perplexity-ask",
   "version": "0.1.0",
   "description": "MCP server for Perplexity API integration",
+  "keywords": [
+    "ai",
+    "perplexity",
+    "mcp",
+    "modelcontextprotocol"
+  ],
+  "homepage": "https://modelcontextprotocol.io",
+  "bugs": {
+    "url": "https://github.com/modelcontextprotocol/servers/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/modelcontextprotocol/servers.git"
+  },
   "license": "MIT",
   "author": "Model Context Protocol (https://modelcontextprotocol.io)",
-  "homepage": "https://modelcontextprotocol.io",
-  "bugs": "https://github.com/modelcontextprotocol/servers/issues",
   "type": "module",
+  "main": "dist/index.js",
   "bin": {
     "mcp-server-perplexity-ask": "dist/index.js"
   },
@@ -19,11 +32,16 @@
     "watch": "tsc --watch"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.0.1"
+    "@modelcontextprotocol/sdk": "^1.0.1",
+    "axios": "^1.6.2",
+    "dotenv": "^16.3.1"
   },
   "devDependencies": {
-    "@types/node": "^22",
+    "@types/node": "^20",
     "shx": "^0.3.4",
     "typescript": "^5.6.2"
+  },
+  "engines": {
+    "node": ">=18"
   }
 }
