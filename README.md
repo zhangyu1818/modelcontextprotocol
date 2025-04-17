@@ -118,6 +118,30 @@ Currently, the search parameters used are the default ones. You can modify any s
 The Claude documentation provides an excellent [troubleshooting guide](https://modelcontextprotocol.io/docs/tools/debugging) you can refer to. However, you can still reach out to us at api@perplexity.ai for any additional support or [file a bug](https://github.com/ppl-ai/api-discussion/issues). 
 
 
+# Cursor integration
+
+You can also use our MCP with Cursor (or any other app that supports this). To use Sonar with Cursor, you can follow the following steps. 
+
+### Step 1: Navigate to your Cursor settings:
+
+![Cursor Settings](perplexity-ask/assets/cursor-settings.png)
+
+### Step 2: Navigate to the MCP directory
+
+And click on `Add new global MCP server`
+
+![Add Server](perplexity-ask/assets/cursor-mcp-directory.png)
+
+
+### Step 3: Insert the MCP Server Configuration from above 
+
+This is the same configuration you would use for any other application that supports MCP. 
+
+You will then see the application being part of your available environments like this:
+
+![Cursor MCP](perplexity-ask/assets/perplexity-ask-mcp-cursor.png)
+
+
 ## License
 
 This MCP server is licensed under the MIT License. This means you are free to use, modify, and distribute the software, subject to the terms and conditions of the MIT License. For more details, please see the LICENSE file in the project repository.
