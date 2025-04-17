@@ -137,7 +137,7 @@ And click on `Add new global MCP server`
 
 This is the same configuration you would use for any other application that supports MCP. 
 
-You will then see the application being part of your available environments like this:
+You should then see the application being part of your available tools like this:
 
 ![Cursor MCP](perplexity-ask/assets/perplexity-ask-mcp-cursor.png)
 
