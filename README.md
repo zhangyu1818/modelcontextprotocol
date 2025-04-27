@@ -2,6 +2,18 @@
 
 An MCP server implementation that integrates the Sonar API to provide Claude with unparalleled real-time, web-wide research.
 
+Please refer to the official [DeepWiki page](https://deepwiki.com/ppl-ai/modelcontextprotocol) for assistance with implementation. 
+
+# High-level System Architecture
+
+*Credits: DeepWiki powered by Devin*
+
+![System Architecture](perplexity-ask/assets/system_architecture.png)
+
+
+
+
+
 ![Demo](perplexity-ask/assets/demo_screenshot.png)
 
 
