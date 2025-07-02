@@ -1,6 +1,6 @@
 {
-  "name": "server-perplexity-ask",
-  "version": "0.1.0",
+  "name": "@zhangyu1818/server-perplexity-ask",
+  "version": "0.1.0-ask-only",
   "description": "MCP server for Perplexity API integration",
   "keywords": [
     "ai",
@@ -43,5 +43,8 @@
   },
   "engines": {
     "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
