@@ -250,10 +250,7 @@ function formatSearchResults(data: any): string {
     formattedResults += `${index + 1}. **${result.title}**\n`;
     formattedResults += `   URL: ${result.url}\n`;
     if (result.snippet) {
-      const snippet = result.snippet.length > 300 
-        ? result.snippet.substring(0, 300) + "..." 
-        : result.snippet;
-      formattedResults += `   ${snippet}\n`;
+      formattedResults += `   ${result.snippet}\n`;
     }
     if (result.date) {
       formattedResults += `   Date: ${result.date}\n`;
