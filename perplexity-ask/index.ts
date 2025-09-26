@@ -117,6 +117,43 @@ const PERPLEXITY_REASON_TOOL: Tool = {
   },
 };
 
+/**
+ * Definition of the Perplexity Search Tool.
+ * This tool performs web search using the Perplexity Search API.
+ */
+const PERPLEXITY_SEARCH_TOOL: Tool = {
+  name: "perplexity_search",
+  description:
+    "Performs web search using the Perplexity Search API. " +
+    "Returns ranked search results with titles, URLs, snippets, and metadata.",
+  inputSchema: {
+    type: "object",
+    properties: {
+      query: {
+        type: "string",
+        description: "Search query string",
+      },
+      max_results: {
+        type: "number",
+        description: "Maximum number of results to return (1-20, default: 10)",
+        minimum: 1,
+        maximum: 20,
+      },
+      max_tokens_per_page: {
+        type: "number",
+        description: "Maximum tokens to extract per webpage (default: 1024)",
+        minimum: 256,
+        maximum: 2048,
+      },
+      country: {
+        type: "string",
+        description: "ISO 3166-1 alpha-2 country code for regional results (e.g., 'US', 'GB')",
+      },
+    },
+    required: ["query"],
+  },
+};
+
 // Retrieve the Perplexity API key from environment variables
 const PERPLEXITY_API_KEY = process.env.PERPLEXITY_API_KEY;
 if (!PERPLEXITY_API_KEY) {
@@ -196,6 +233,98 @@ async function performChatCompletion(
   return messageContent;
 }
 
+/**
+ * Formats search results from the Perplexity Search API into a readable string.
+ *
+ * @param {any} data - The search response data from the API.
+ * @returns {string} Formatted search results.
+ */
+function formatSearchResults(data: any): string {
+  if (!data.results || !Array.isArray(data.results)) {
+    return "No search results found.";
+  }
+
+  let formattedResults = `Found ${data.results.length} search results:\n\n`;
+  
+  data.results.forEach((result: any, index: number) => {
+    formattedResults += `${index + 1}. **${result.title}**\n`;
+    formattedResults += `   URL: ${result.url}\n`;
+    if (result.snippet) {
+      formattedResults += `   ${result.snippet}\n`;
+    }
+    if (result.date) {
+      formattedResults += `   Date: ${result.date}\n`;
+    }
+    formattedResults += `\n`;
+  });
+
+  return formattedResults;
+}
+
+/**
+ * Performs a web search using the Perplexity Search API.
+ *
+ * @param {string} query - The search query string.
+ * @param {number} maxResults - Maximum number of results to return (1-20).
+ * @param {number} maxTokensPerPage - Maximum tokens to extract per webpage.
+ * @param {string} country - Optional ISO country code for regional results.
+ * @returns {Promise<string>} The formatted search results.
+ * @throws Will throw an error if the API request fails.
+ */
+async function performSearch(
+  query: string,
+  maxResults: number = 10,
+  maxTokensPerPage: number = 1024,
+  country?: string
+): Promise<string> {
+  const url = new URL("https://api.perplexity.ai/search");
+  const body: any = {
+    query: query,
+    max_results: maxResults,
+    max_tokens_per_page: maxTokensPerPage,
+  };
+
+  if (country) {
+    body.country = country;
+  }
+
+  let response;
+  try {
+    response = await fetch(url.toString(), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${PERPLEXITY_API_KEY}`,
+      },
+      body: JSON.stringify(body),
+    });
+  } catch (error) {
+    throw new Error(`Network error while calling Perplexity Search API: ${error}`);
+  }
+
+  // Check for non-successful HTTP status
+  if (!response.ok) {
+    let errorText;
+    try {
+      errorText = await response.text();
+    } catch (parseError) {
+      errorText = "Unable to parse error response";
+    }
+    throw new Error(
+      `Perplexity Search API error: ${response.status} ${response.statusText}\n${errorText}`
+    );
+  }
+
+  let data;
+  try {
+    data = await response.json();
+  } catch (jsonError) {
+    throw new Error(`Failed to parse JSON response from Perplexity Search API: ${jsonError}`);
+  }
+
+  return formatSearchResults(data);
+}
+
 // Initialize the server with tool metadata and capabilities
 const server = new Server(
   {
@@ -214,7 +343,7 @@ const server = new Server(
  * When the client requests a list of tools, this handler returns all available Perplexity tools.
  */
 server.setRequestHandler(ListToolsRequestSchema, async () => ({
-  tools: [PERPLEXITY_ASK_TOOL, PERPLEXITY_RESEARCH_TOOL, PERPLEXITY_REASON_TOOL],
+  tools: [PERPLEXITY_ASK_TOOL, PERPLEXITY_RESEARCH_TOOL, PERPLEXITY_REASON_TOOL, PERPLEXITY_SEARCH_TOOL],
 }));
 
 /**
@@ -267,6 +396,26 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           isError: false,
         };
       }
+      case "perplexity_search": {
+        if (typeof args.query !== "string") {
+          throw new Error("Invalid arguments for perplexity_search: 'query' must be a string");
+        }
+        const { query, max_results, max_tokens_per_page, country } = args;
+        const maxResults = typeof max_results === "number" ? max_results : undefined;
+        const maxTokensPerPage = typeof max_tokens_per_page === "number" ? max_tokens_per_page : undefined;
+        const countryCode = typeof country === "string" ? country : undefined;
+        
+        const result = await performSearch(
+          query,
+          maxResults,
+          maxTokensPerPage,
+          countryCode
+        );
+        return {
+          content: [{ type: "text", text: result }],
+          isError: false,
+        };
+      }
       default:
         // Respond with an error if an unknown tool is requested
         return {
@@ -296,7 +445,7 @@ async function runServer() {
   try {
     const transport = new StdioServerTransport();
     await server.connect(transport);
-    console.error("Perplexity MCP Server running on stdio with Ask, Research, and Reason tools");
+    console.error("Perplexity MCP Server running on stdio with Ask, Research, Reason, and Search tools");
   } catch (error) {
     console.error("Fatal error running server:", error);
     process.exit(1);
