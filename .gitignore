@@ -32,6 +32,7 @@ venv/
 
 # Ignore dependency and build artifacts
 node_modules/
+dist/
 npm-debug.log
 yarn-error.log
 
