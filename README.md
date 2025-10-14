@@ -32,7 +32,7 @@ Advanced reasoning and problem-solving using the `sonar-reasoning-pro` model. Pe
 
 ### Claude Code
 
-Use the HTTP-based configuration:
+Run in your terminal:
 
 ```bash
 claude mcp add perplexity --transport stdio --env PERPLEXITY_API_KEY=your_key_here -- npx -y perplexity-mcp
@@ -75,6 +75,7 @@ Add to your `mcp.json`:
 ```
 
 ### Claude Desktop
+
 Add to your `claude_desktop_config.json`:
 
 ```json
@@ -92,6 +93,7 @@ Add to your `claude_desktop_config.json`:
 ```
 
 ### Other MCP Clients
+
 For any MCP-compatible client, use:
 
 ```bash
