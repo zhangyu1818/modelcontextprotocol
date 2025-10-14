@@ -2,13 +2,7 @@
 
 The official MCP server implementation for the Perplexity API Platform, providing AI assistants with real-time web search, reasoning, and research capabilities through Sonar models and the Search API.
 
-Please refer to the official [DeepWiki page](https://deepwiki.com/ppl-ai/modelcontextprotocol) for assistance with implementation. 
-
-## Quick Start
-
-```bash
-npx @perplexity-ai/mcp-server
-```
+Please refer to the official [DeepWiki page](https://deepwiki.com/ppl-ai/modelcontextprotocol) for assistance with implementation.
 
 ## Available Tools
 
