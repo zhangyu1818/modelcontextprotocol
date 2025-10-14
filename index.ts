@@ -161,6 +161,10 @@ if (!PERPLEXITY_API_KEY) {
   process.exit(1);
 }
 
+// Configure timeout for API requests (default: 5 minutes)
+// Can be overridden via PERPLEXITY_TIMEOUT_MS environment variable
+const TIMEOUT_MS = parseInt(process.env.PERPLEXITY_TIMEOUT_MS || "300000", 10);
+
 /**
  * Performs a chat completion by sending a request to the Perplexity API.
  * Appends citations to the returned message content if they exist.
@@ -184,6 +188,9 @@ async function performChatCompletion(
     // https://docs.perplexity.ai/api-reference/chat-completions
   };
 
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
+
   let response;
   try {
     response = await fetch(url.toString(), {
@@ -193,8 +200,14 @@ async function performChatCompletion(
         "Authorization": `Bearer ${PERPLEXITY_API_KEY}`,
       },
       body: JSON.stringify(body),
+      signal: controller.signal,
     });
+    clearTimeout(timeoutId);
   } catch (error) {
+    clearTimeout(timeoutId);
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new Error(`Request timeout: Perplexity API did not respond within ${TIMEOUT_MS}ms. Consider increasing PERPLEXITY_TIMEOUT_MS.`);
+    }
     throw new Error(`Network error while calling Perplexity API: ${error}`);
   }
 
@@ -288,6 +301,9 @@ async function performSearch(
     body.country = country;
   }
 
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
+
   let response;
   try {
     response = await fetch(url.toString(), {
@@ -297,8 +313,14 @@ async function performSearch(
         "Authorization": `Bearer ${PERPLEXITY_API_KEY}`,
       },
       body: JSON.stringify(body),
+      signal: controller.signal,
     });
+    clearTimeout(timeoutId);
   } catch (error) {
+    clearTimeout(timeoutId);
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new Error(`Request timeout: Perplexity Search API did not respond within ${TIMEOUT_MS}ms. Consider increasing PERPLEXITY_TIMEOUT_MS.`);
+    }
     throw new Error(`Network error while calling Perplexity Search API: ${error}`);
   }
 

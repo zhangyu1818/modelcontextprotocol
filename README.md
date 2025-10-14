@@ -29,6 +29,7 @@ Advanced reasoning and problem-solving using the `sonar-reasoning-pro` model. Pe
 ### Get Your API Key
 1. Get your Perplexity API Key from the [API Portal](https://www.perplexity.ai/account/api/group)
 2. Set it as an environment variable: `PERPLEXITY_API_KEY=your_key_here`
+3. (Optional) Set a timeout for requests: `PERPLEXITY_TIMEOUT_MS=600000`. The default is 5 minutes.
 
 ### Claude Code
 
@@ -51,6 +52,7 @@ Or add to your `claude.json`:
     ],
     "env": {
       "PERPLEXITY_API_KEY": "your_key_here",
+      "PERPLEXITY_TIMEOUT_MS": "600000"
     }
   }
 }
@@ -68,6 +70,7 @@ Add to your `mcp.json`:
       "args": ["-y", "@perplexity-ai/mcp-server"],
       "env": {
         "PERPLEXITY_API_KEY": "your_key_here",
+        "PERPLEXITY_TIMEOUT_MS": "600000"
       }
     }
   }
@@ -86,6 +89,7 @@ Add to your `claude_desktop_config.json`:
       "args": ["-y", "@perplexity-ai/mcp-server"],
       "env": {
         "PERPLEXITY_API_KEY": "your_key_here",
+        "PERPLEXITY_TIMEOUT_MS": "600000"
       }
     }
   }
@@ -105,6 +109,7 @@ npx @perplexity-ai/mcp-server
 - **API Key Issues**: Ensure `PERPLEXITY_API_KEY` is set correctly
 - **Connection Errors**: Check your internet connection and API key validity
 - **Tool Not Found**: Make sure the package is installed and the command path is correct
+- **Timeout Errors**: For very long research queries, set `PERPLEXITY_TIMEOUT_MS` to a higher value
 
 For support, visit [community.perplexity.ai](https://community.perplexity.ai) or [file an issue](https://github.com/perplexityai/modelcontextprotocol/issues).
 
