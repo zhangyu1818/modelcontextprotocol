@@ -30,6 +30,50 @@ Advanced reasoning and problem-solving using the `sonar-reasoning-pro` model. Pe
 1. Get your Perplexity API Key from the [API Portal](https://www.perplexity.ai/account/api/group)
 2. Set it as an environment variable: `PERPLEXITY_API_KEY=your_key_here`
 
+### Claude Code
+
+Use the HTTP-based configuration:
+
+```bash
+claude mcp add perplexity --transport stdio --env PERPLEXITY_API_KEY=your_key_here -- npx -y perplexity-mcp
+```
+
+Or add to your `claude.json`:
+
+```json
+"mcpServers": {
+  "perplexity": {
+    "type": "stdio",
+    "command": "npx",
+    "args": [
+      "-y",
+      "perplexity-mcp"
+    ],
+    "env": {
+      "PERPLEXITY_API_KEY": "your_key_here",
+    }
+  }
+}
+```
+
+### Cursor
+
+Add to your `mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "perplexity": {
+      "command": "npx",
+      "args": ["-y", "@perplexity-ai/mcp-server"],
+      "env": {
+        "PERPLEXITY_API_KEY": "your_key_here",
+      }
+    }
+  }
+}
+```
+
 ### Claude Desktop
 Add to your `claude_desktop_config.json`:
 
@@ -40,24 +84,7 @@ Add to your `claude_desktop_config.json`:
       "command": "npx",
       "args": ["-y", "@perplexity-ai/mcp-server"],
       "env": {
-        "PERPLEXITY_API_KEY": "your_key_here"
-      }
-    }
-  }
-}
-```
-
-### Cursor & Claude Code
-Use the HTTP-based configuration:
-
-```json
-{
-  "mcpServers": {
-    "perplexity": {
-      "type": "http", 
-      "url": "http://localhost:3000/mcp",
-      "env": {
-        "PERPLEXITY_API_KEY": "your_key_here"
+        "PERPLEXITY_API_KEY": "your_key_here",
       }
     }
   }
