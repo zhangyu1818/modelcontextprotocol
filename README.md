@@ -33,6 +33,14 @@ Run in your terminal:
 claude mcp add perplexity --transport stdio --env PERPLEXITY_API_KEY=your_key_here -- npx -y perplexity-mcp
 ```
 
+### Codex
+
+Run in your terminal:
+
+```bash
+codex mcp add perplexity --env PERPLEXITY_API_KEY=your_key_here -- npx -y @perplexity-ai/mcp-server
+```
+
 Or add to your `claude.json`:
 
 ```json
