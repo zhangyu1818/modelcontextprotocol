@@ -1,6 +1,6 @@
 {
   "name": "@perplexity-ai/mcp-server",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Official MCP server for Perplexity API Platform",
   "keywords": [
     "ai",
