@@ -32,6 +32,25 @@ Advanced reasoning and problem-solving using the `sonar-reasoning-pro` model. Pe
 
 ### Claude Code
 
+#### Option 1: Install via Plugin (Recommended)
+
+The easiest way to get started with Perplexity in Claude Code:
+
+```bash
+# Add the Perplexity marketplace
+/plugin marketplace add perplexityai/modelcontextprotocol
+
+# Install the plugin
+/plugin install perplexity
+```
+
+Then set your API key:
+```bash
+export PERPLEXITY_API_KEY="your_key_here"
+```
+
+#### Option 2: Manual Configuration
+
 Run in your terminal:
 
 ```bash
