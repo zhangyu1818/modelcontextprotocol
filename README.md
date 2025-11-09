@@ -18,6 +18,11 @@ Deep, comprehensive research using the `sonar-deep-research` model. Ideal for th
 ### **perplexity_reason**
 Advanced reasoning and problem-solving using the `sonar-reasoning-pro` model. Perfect for complex analytical tasks.
 
+> [!TIP]
+> Available as an optional parameter for **perplexity_reason** and **perplexity_research**: `strip_thinking`
+>
+> Set to `true` to remove `<think>...</think>` tags from the response, saving context tokens. Default: `false`
+
 ## Configuration
 
 ### Get Your API Key
