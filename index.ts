@@ -477,7 +477,7 @@ export async function performSearch(
 const server = new Server(
   {
     name: "io.github.perplexityai/mcp-server",
-    version: "0.4.0",
+    version: "0.4.1",
   },
   {
     capabilities: {
