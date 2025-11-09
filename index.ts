@@ -76,6 +76,10 @@ const PERPLEXITY_RESEARCH_TOOL: Tool = {
         },
         description: "Array of conversation messages",
       },
+      strip_thinking: {
+        type: "boolean",
+        description: "If true, removes <think>...</think> tags and their content from the response to save context tokens. Default is false.",
+      },
     },
     required: ["messages"],
   },
@@ -111,6 +115,10 @@ const PERPLEXITY_REASON_TOOL: Tool = {
           required: ["role", "content"],
         },
         description: "Array of conversation messages",
+      },
+      strip_thinking: {
+        type: "boolean",
+        description: "If true, removes <think>...</think> tags and their content from the response to save context tokens. Default is false.",
       },
     },
     required: ["messages"],
@@ -189,17 +197,30 @@ function validateMessages(messages: any, toolName: string): void {
 }
 
 /**
+ * Strips thinking tokens (content within <think>...</think> tags) from the response.
+ * This helps reduce context usage when the thinking process is not needed.
+ *
+ * @param {string} content - The content to process
+ * @returns {string} The content with thinking tokens removed
+ */
+function stripThinkingTokens(content: string): string {
+  return content.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+}
+
+/**
  * Performs a chat completion by sending a request to the Perplexity API.
  * Appends citations to the returned message content if they exist.
  *
  * @param {Array<{ role: string; content: string }>} messages - An array of message objects.
  * @param {string} model - The model to use for the completion.
+ * @param {boolean} stripThinking - If true, removes <think>...</think> tags from the response.
  * @returns {Promise<string>} The chat completion result with appended citations.
  * @throws Will throw an error if the API request fails.
  */
 export async function performChatCompletion(
   messages: Array<{ role: string; content: string }>,
-  model: string = "sonar-pro"
+  model: string = "sonar-pro",
+  stripThinking: boolean = false
 ): Promise<string> {
   // Read timeout fresh each time to respect env var changes
   const TIMEOUT_MS = parseInt(process.env.PERPLEXITY_TIMEOUT_MS || "300000", 10);
@@ -270,6 +291,11 @@ export async function performChatCompletion(
 
   // Directly retrieve the main message content from the response
   let messageContent = firstChoice.message.content;
+
+  // Strip thinking tokens if requested
+  if (stripThinking) {
+    messageContent = stripThinkingTokens(messageContent);
+  }
 
   // If citations are provided, append them to the message content
   if (data.citations && Array.isArray(data.citations) && data.citations.length > 0) {
@@ -433,7 +459,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       case "perplexity_research": {
         validateMessages(args.messages, "perplexity_research");
         const messages = args.messages as Array<{ role: string; content: string }>;
-        const result = await performChatCompletion(messages, "sonar-deep-research");
+        const stripThinking = typeof args.strip_thinking === "boolean" ? args.strip_thinking : false;
+        const result = await performChatCompletion(messages, "sonar-deep-research", stripThinking);
         return {
           content: [{ type: "text", text: result }],
           isError: false,
@@ -442,7 +469,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       case "perplexity_reason": {
         validateMessages(args.messages, "perplexity_reason");
         const messages = args.messages as Array<{ role: string; content: string }>;
-        const result = await performChatCompletion(messages, "sonar-reasoning-pro");
+        const stripThinking = typeof args.strip_thinking === "boolean" ? args.strip_thinking : false;
+        const result = await performChatCompletion(messages, "sonar-reasoning-pro", stripThinking);
         return {
           content: [{ type: "text", text: result }],
           isError: false,
