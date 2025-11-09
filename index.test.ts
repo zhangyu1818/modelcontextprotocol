@@ -626,4 +626,43 @@ describe("Perplexity MCP Server", () => {
       expect(formatted).not.toContain("12345");
     });
   });
+
+  describe("strip_thinking parameter", () => {
+    it("should strip thinking tokens when true and keep them when false", async () => {
+      const mockResponse = {
+        choices: [
+          {
+            message: {
+              content: "<think>This is my reasoning process</think>\n\nThe answer is 4.",
+            },
+          },
+        ],
+      };
+
+      // Test with stripThinking = true
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => mockResponse,
+      } as Response);
+
+      const messages = [{ role: "user", content: "What is 2+2?" }];
+      const resultStripped = await performChatCompletion(messages, "sonar-reasoning-pro", true);
+
+      expect(resultStripped).not.toContain("<think>");
+      expect(resultStripped).not.toContain("</think>");
+      expect(resultStripped).not.toContain("This is my reasoning process");
+      expect(resultStripped).toContain("The answer is 4.");
+
+      // Test with stripThinking = false
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => mockResponse,
+      } as Response);
+
+      const resultKept = await performChatCompletion(messages, "sonar-reasoning-pro", false);
+
+      expect(resultKept).toContain("<think>This is my reasoning process</think>");
+      expect(resultKept).toContain("The answer is 4.");
+    });
+  });
 });
