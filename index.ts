@@ -16,6 +16,7 @@ import { fetch as undiciFetch, ProxyAgent } from "undici";
  */
 const PERPLEXITY_ASK_TOOL: Tool = {
   name: "perplexity_ask",
+  title: "Ask Perplexity",
   description:
     "Engages in a conversation using the Sonar API. " +
     "Accepts an array of messages (each with a role and content) " +
@@ -44,6 +45,10 @@ const PERPLEXITY_ASK_TOOL: Tool = {
     },
     required: ["messages"],
   },
+  annotations: {
+    readOnlyHint: true,
+    openWorldHint: true,
+  },
 };
 
 /**
@@ -52,6 +57,7 @@ const PERPLEXITY_ASK_TOOL: Tool = {
  */
 const PERPLEXITY_RESEARCH_TOOL: Tool = {
   name: "perplexity_research",
+  title: "Deep Research",
   description:
     "Performs deep research using the Perplexity API. " +
     "Accepts an array of messages (each with a role and content) " +
@@ -84,6 +90,10 @@ const PERPLEXITY_RESEARCH_TOOL: Tool = {
     },
     required: ["messages"],
   },
+  annotations: {
+    readOnlyHint: true,
+    openWorldHint: true,
+  },
 };
 
 /**
@@ -92,6 +102,7 @@ const PERPLEXITY_RESEARCH_TOOL: Tool = {
  */
 const PERPLEXITY_REASON_TOOL: Tool = {
   name: "perplexity_reason",
+  title: "Advanced Reasoning",
   description:
     "Performs reasoning tasks using the Perplexity API. " +
     "Accepts an array of messages (each with a role and content) " +
@@ -124,6 +135,10 @@ const PERPLEXITY_REASON_TOOL: Tool = {
     },
     required: ["messages"],
   },
+  annotations: {
+    readOnlyHint: true,
+    openWorldHint: true,
+  },
 };
 
 /**
@@ -132,9 +147,11 @@ const PERPLEXITY_REASON_TOOL: Tool = {
  */
 const PERPLEXITY_SEARCH_TOOL: Tool = {
   name: "perplexity_search",
+  title: "Search the Web",
   description:
     "Performs web search using the Perplexity Search API. " +
-    "Returns ranked search results with titles, URLs, snippets, and metadata.",
+    "Returns ranked search results with titles, URLs, snippets, and metadata. " +
+    "Perfect for finding up-to-date facts, news, or specific information.",
   inputSchema: {
     type: "object",
     properties: {
@@ -160,6 +177,10 @@ const PERPLEXITY_SEARCH_TOOL: Tool = {
       },
     },
     required: ["query"],
+  },
+  annotations: {
+    readOnlyHint: true,
+    openWorldHint: true,
   },
 };
 
@@ -455,13 +476,24 @@ export async function performSearch(
 // Initialize the server with tool metadata and capabilities
 const server = new Server(
   {
-    name: "example-servers/perplexity-ask",
-    version: "0.1.0",
+    name: "io.github.perplexityai/mcp-server",
+    version: "0.4.0",
   },
   {
     capabilities: {
       tools: {},
     },
+    instructions: `You are the Perplexity MCP Server. Use these tools appropriately:
+
+- perplexity_search: For quick web searches when you need current information or facts. Returns ranked search results.
+
+- perplexity_ask: For general questions and conversational queries with real-time web search using the sonar-pro model.
+
+- perplexity_research: For deep, comprehensive research requiring thorough analysis using the sonar-deep-research model. Use this for complex topics that require detailed investigation.
+
+- perplexity_reason: For complex analytical tasks requiring advanced reasoning using the sonar-reasoning-pro model. Use this for logical problems, analysis, and decision-making.
+
+When using perplexity_research or perplexity_reason, consider setting strip_thinking=true to save context tokens if the reasoning process isn't needed in the final output.`,
   }
 );
 
