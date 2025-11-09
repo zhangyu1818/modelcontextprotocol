@@ -111,12 +111,51 @@ For any MCP-compatible client, use:
 npx @perplexity-ai/mcp-server
 ```
 
+### Proxy Setup (For Corporate Networks)
+
+If you are running this server at work—especially behind a company firewall or proxy—you may need to tell the program how to send its internet traffic through your network's proxy. Follow these steps:
+
+**1. Get your proxy details**
+
+- Ask your IT department for your HTTP(S) proxy address and port.
+- You may also need a username and password.
+
+**2. Set the proxy environment variable**
+
+The easiest and most reliable way for Perplexity MCP is to use `PERPLEXITY_PROXY`. For example:
+
+```bash
+export PERPLEXITY_PROXY=http://your-proxy-host:8080
+```
+
+- If your proxy needs a username and password, use:
+  ```bash
+  export PERPLEXITY_PROXY=http://username:password@your-proxy-host:8080
+  ```
+
+**3. Alternate: Standard environment variables**
+
+If you'd rather use the standard variables, we support `HTTPS_PROXY` and `HTTP_PROXY`.
+
+> [!NOTE]
+>The server checks proxy settings in this order: `PERPLEXITY_PROXY` → `HTTPS_PROXY` → `HTTP_PROXY`. If none are set, it connects directly to the internet.
+
 ## Troubleshooting
 
 - **API Key Issues**: Ensure `PERPLEXITY_API_KEY` is set correctly
 - **Connection Errors**: Check your internet connection and API key validity
 - **Tool Not Found**: Make sure the package is installed and the command path is correct
 - **Timeout Errors**: For very long research queries, set `PERPLEXITY_TIMEOUT_MS` to a higher value
+- **Proxy Issues**: If you're behind a corporate firewall and experience connection errors, you likely need to set up a proxy:
+  - Obtain your proxy server address and port from your IT department.
+  - Set the environment variable before running the server, e.g.:
+    - `export PERPLEXITY_PROXY=http://proxy-address:port`
+    - If authentication is needed: `export PERPLEXITY_PROXY=http://username:password@proxy-address:port`
+    - Typical proxy ports include 8080, 3128, or 80.
+  - The format for authenticated proxies is:  
+    `http://username:password@proxy-host:port`
+  - Double-check the address, port, and credentials if connections fail or time out.
+  - If you continue to have issues, your firewall may be blocking traffic; ask IT if traffic for `api.perplexity.ai` is being restricted.
 
 For support, visit [community.perplexity.ai](https://community.perplexity.ai) or [file an issue](https://github.com/perplexityai/modelcontextprotocol/issues).
 
