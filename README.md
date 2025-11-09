@@ -1,5 +1,11 @@
 # Perplexity API Platform MCP Server
 
+[![Install in Cursor](https://custom-icon-badges.demolab.com/badge/Install_in_Cursor-000000?style=for-the-badge&logo=cursor-ai-white)](https://cursor.com/en/install-mcp?name=perplexity&config=eyJ0eXBlIjoic3RkaW8iLCJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkBwZXJwbGV4aXR5LWFpL21jcC1zZXJ2ZXIiXX0=)
+&nbsp;
+[![Install in VS Code](https://custom-icon-badges.demolab.com/badge/Install_in_VS_Code-007ACC?style=for-the-badge&logo=vsc&logoColor=white)](https://vscode.dev/redirect/mcp/install?name=perplexity&config=%7B%22type%22%3A%22stdio%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40perplexity-ai%2Fmcp-server%22%5D%7D)
+&nbsp;
+[![npm version](https://img.shields.io/npm/v/%40perplexity-ai%2Fmcp-server?style=for-the-badge&logo=npm&logoColor=white&color=CB3837)](https://www.npmjs.com/package/@perplexity-ai/mcp-server)
+
 The official MCP server implementation for the Perplexity API Platform, providing AI assistants with real-time web search, reasoning, and research capabilities through Sonar models and the Search API.
 
 Please refer to the official [DeepWiki page](https://deepwiki.com/ppl-ai/modelcontextprotocol) for assistance with implementation.
@@ -76,9 +82,9 @@ Or add to your `claude.json`:
 }
 ```
 
-### Cursor
+### Cursor / VS Code
 
-Add to your `mcp.json`:
+Add to your `mcp.json` (Cursor) or `.vscode/mcp.json` (VS Code):
 
 ```json
 {
@@ -94,6 +100,8 @@ Add to your `mcp.json`:
   }
 }
 ```
+
+Or use the one-click install badges at the top of this README.
 
 ### Codex
 
@@ -167,7 +175,7 @@ If you'd rather use the standard variables, we support `HTTPS_PROXY` and `HTTP_P
 - **Connection Errors**: Check your internet connection and API key validity
 - **Tool Not Found**: Make sure the package is installed and the command path is correct
 - **Timeout Errors**: For very long research queries, set `PERPLEXITY_TIMEOUT_MS` to a higher value
-- **Proxy Issues**: Verify your `PERPLEXITY_PROXY` or `HTTPS_PROXY` setup and ensure `api.perplexity.ai` isn’t blocked by your firewall.
+- **Proxy Issues**: Verify your `PERPLEXITY_PROXY` or `HTTPS_PROXY` setup and ensure `api.perplexity.ai` isn't blocked by your firewall.
 
 For support, visit [community.perplexity.ai](https://community.perplexity.ai) or [file an issue](https://github.com/perplexityai/modelcontextprotocol/issues).
 
