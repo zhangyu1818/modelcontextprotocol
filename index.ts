@@ -7,6 +7,7 @@ import {
   ListToolsRequestSchema,
   Tool,
 } from "@modelcontextprotocol/sdk/types.js";
+import { fetch as undiciFetch, ProxyAgent } from "undici";
 
 /**
  * Definition of the Perplexity Ask Tool.
@@ -170,6 +171,45 @@ if (!PERPLEXITY_API_KEY) {
 }
 
 /**
+ * Gets the proxy URL from environment variables.
+ * Checks PERPLEXITY_PROXY, HTTPS_PROXY, HTTP_PROXY in order.
+ * 
+ * @returns {string | undefined} The proxy URL if configured, undefined otherwise
+ */
+function getProxyUrl(): string | undefined {
+  return process.env.PERPLEXITY_PROXY || 
+         process.env.HTTPS_PROXY || 
+         process.env.HTTP_PROXY || 
+         undefined;
+}
+
+/**
+ * Creates a proxy-aware fetch function.
+ * Uses undici with ProxyAgent when a proxy is configured, otherwise uses native fetch.
+ * 
+ * @param {string} url - The URL to fetch
+ * @param {RequestInit} options - Fetch options
+ * @returns {Promise<Response>} The fetch response
+ */
+async function proxyAwareFetch(url: string, options: RequestInit = {}): Promise<Response> {
+  const proxyUrl = getProxyUrl();
+  
+  if (proxyUrl) {
+    // Use undici with ProxyAgent when proxy is configured
+    const proxyAgent = new ProxyAgent(proxyUrl);
+    const response = await undiciFetch(url, {
+      ...options,
+      dispatcher: proxyAgent,
+    } as any);
+    // Cast to native Response type for compatibility
+    return response as unknown as Response;
+  } else {
+    // Use native fetch when no proxy is configured
+    return fetch(url, options);
+  }
+}
+
+/**
  * Validates an array of message objects for chat completion tools.
  * Ensures each message has a valid role and content field.
  *
@@ -240,7 +280,7 @@ export async function performChatCompletion(
 
   let response;
   try {
-    response = await fetch(url.toString(), {
+    response = await proxyAwareFetch(url.toString(), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -371,7 +411,7 @@ export async function performSearch(
 
   let response;
   try {
-    response = await fetch(url.toString(), {
+    response = await proxyAwareFetch(url.toString(), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

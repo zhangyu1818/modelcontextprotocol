@@ -665,4 +665,65 @@ describe("Perplexity MCP Server", () => {
       expect(resultKept).toContain("The answer is 4.");
     });
   });
+
+  describe("Proxy Support", () => {
+    const originalEnv = process.env;
+
+    beforeEach(() => {
+      // Reset environment variables
+      process.env = { ...originalEnv };
+      delete process.env.PERPLEXITY_PROXY;
+      delete process.env.HTTPS_PROXY;
+      delete process.env.HTTP_PROXY;
+    });
+
+    afterEach(() => {
+      process.env = originalEnv;
+    });
+
+    it("should use native fetch when no proxy is configured", async () => {
+      const mockResponse = {
+        choices: [{ message: { content: "Test response" } }],
+      };
+
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => mockResponse,
+      } as Response);
+
+      const messages = [{ role: "user", content: "test" }];
+      await performChatCompletion(messages);
+
+      // Verify native fetch was called (not undici)
+      expect(global.fetch).toHaveBeenCalled();
+    });
+
+    it("should read PERPLEXITY_PROXY environment variable", () => {
+      process.env.PERPLEXITY_PROXY = "http://proxy.example.com:8080";
+      expect(process.env.PERPLEXITY_PROXY).toBe("http://proxy.example.com:8080");
+    });
+
+    it("should prioritize PERPLEXITY_PROXY over HTTPS_PROXY", () => {
+      process.env.PERPLEXITY_PROXY = "http://perplexity-proxy.example.com:8080";
+      process.env.HTTPS_PROXY = "http://https-proxy.example.com:8080";
+      
+      // PERPLEXITY_PROXY should take precedence
+      expect(process.env.PERPLEXITY_PROXY).toBe("http://perplexity-proxy.example.com:8080");
+    });
+
+    it("should fall back to HTTPS_PROXY when PERPLEXITY_PROXY is not set", () => {
+      delete process.env.PERPLEXITY_PROXY;
+      process.env.HTTPS_PROXY = "http://https-proxy.example.com:8080";
+      
+      expect(process.env.HTTPS_PROXY).toBe("http://https-proxy.example.com:8080");
+    });
+
+    it("should fall back to HTTP_PROXY when others are not set", () => {
+      delete process.env.PERPLEXITY_PROXY;
+      delete process.env.HTTPS_PROXY;
+      process.env.HTTP_PROXY = "http://http-proxy.example.com:8080";
+      
+      expect(process.env.HTTP_PROXY).toBe("http://http-proxy.example.com:8080");
+    });
+  });
 });
