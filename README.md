@@ -168,6 +168,40 @@ If you'd rather use the standard variables, we support `HTTPS_PROXY` and `HTTP_P
 > The server checks proxy settings in this order: `PERPLEXITY_PROXY` → `HTTPS_PROXY` → `HTTP_PROXY`. If none are set, it connects directly to the internet.
 > URLs must include `https://`. Typical ports are `8080`, `3128`, and `80`.
 
+
+### HTTP Server Deployment
+
+For cloud or shared deployments, you can run the server in HTTP mode:
+
+#### Environment Variables
+
+The HTTP server supports these configuration options:
+
+- **`PORT`** - HTTP server port (default: `8080`)
+- **`BIND_ADDRESS`** - Network interface to bind to (default: `127.0.0.1` for local, use `0.0.0.0` for hosted)
+- **`ALLOWED_ORIGINS`** - Comma-separated list of allowed CORS origins (default: `http://localhost:3000,http://127.0.0.1:3000`, use `*` for public service)
+- **`PERPLEXITY_API_KEY`** - Your Perplexity API key (required)
+
+#### Using Docker
+
+```bash
+docker build -t perplexity-mcp-server .
+docker run -p 8080:8080 -e PERPLEXITY_API_KEY=your_key_here perplexity-mcp-server
+```
+
+The server will be accessible at `http://localhost:8080/mcp`
+
+#### Using Node.js Directly
+
+```bash
+npm install
+npm run build
+npm run start:http
+```
+
+Connect your MCP client to: `http://localhost:8080/mcp`
+
+
 ## Troubleshooting
 
 - **API Key Issues**: Ensure `PERPLEXITY_API_KEY` is set correctly
