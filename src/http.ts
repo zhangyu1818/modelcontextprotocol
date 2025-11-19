@@ -41,95 +41,34 @@ app.use(cors({
 
 app.use(express.json());
 
-// Create the MCP server once (reusable across requests)
 const mcpServer = createPerplexityServer();
 
 /**
- * Map to store transports by session ID
+ * POST: client-to-server messages (requests, responses, notifications)
+ * GET: SSE stream for server-to-client messages (notifications, requests)
  */
-const transports = new Map<string, StreamableHTTPServerTransport>();
-
-/**
- * MCP POST endpoint handler
- * Handles client-to-server messages (requests, responses, notifications)
- */
-app.post("/mcp", async (req, res) => {
+app.all("/mcp", async (req, res) => {
   try {
-    const sessionId = req.headers['mcp-session-id'] as string | undefined;
-    let transport: StreamableHTTPServerTransport;
+    const transport = new StreamableHTTPServerTransport({
+      sessionIdGenerator: undefined,
+      enableJsonResponse: true,
+    });
 
-    if (sessionId && transports.has(sessionId)) {
-      // Reuse existing transport for this session
-      transport = transports.get(sessionId)!;
-    } else {
-      // Create new transport with session support
-      transport = new StreamableHTTPServerTransport({
-        sessionIdGenerator: () => {
-          // Generate unique session ID
-          return `session-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
-        },
-        enableJsonResponse: true,
-        onsessioninitialized: (newSessionId: string) => {
-          // Store transport when session is initialized
-          transports.set(newSessionId, transport);
-          console.error(`Session initialized: ${newSessionId}`);
-        },
-      });
+    res.on('close', () => {
+      transport.close();
+    });
 
-      // Clean up when transport closes
-      transport.onclose = () => {
-        if (transport.sessionId) {
-          transports.delete(transport.sessionId);
-          console.error(`Session closed: ${transport.sessionId}`);
-        }
-      };
-
-      // Connect server to transport
-      await mcpServer.connect(transport);
-    }
-
-    // Handle the request
+    await mcpServer.connect(transport);
+    
     await transport.handleRequest(req, res, req.body);
   } catch (error) {
-    console.error("Error handling MCP POST request:", error);
+    console.error("Error handling MCP request:", error);
     if (!res.headersSent) {
       res.status(500).json({
         jsonrpc: "2.0",
         error: { code: -32603, message: "Internal server error" },
         id: null,
       });
-    }
-  }
-});
-
-/**
- * MCP GET endpoint handler
- * Opens SSE stream for server-to-client messages (notifications, requests)
- */
-app.get("/mcp", async (req, res) => {
-  try {
-    const sessionId = req.headers['mcp-session-id'] as string | undefined;
-    console.error(`GET /mcp request - Session ID: ${sessionId}, Available sessions: ${Array.from(transports.keys()).join(', ')}`);
-
-    if (!sessionId) {
-      console.error("GET /mcp: Missing session ID");
-      res.status(400).send("Missing mcp-session-id header");
-      return;
-    }
-
-    if (!transports.has(sessionId)) {
-      console.error(`GET /mcp: Session not found: ${sessionId}`);
-      res.status(400).send(`Session not found: ${sessionId}`);
-      return;
-    }
-
-    const transport = transports.get(sessionId)!;
-    console.error(`GET /mcp: Opening SSE stream for session ${sessionId}`);
-    await transport.handleRequest(req, res);
-  } catch (error) {
-    console.error("Error handling MCP GET request:", error);
-    if (!res.headersSent) {
-      res.status(500).send("Internal server error");
     }
   }
 });
