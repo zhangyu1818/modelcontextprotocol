@@ -172,6 +172,15 @@ If you'd rather use the standard variables, we support `HTTPS_PROXY` and `HTTP_P
 
 For cloud or shared deployments, you can run the server in HTTP mode:
 
+#### Environment Variables
+
+The HTTP server supports these configuration options:
+
+- **`PORT`** - HTTP server port (default: `8080`)
+- **`BIND_ADDRESS`** - Network interface to bind to (default: `127.0.0.1` for local, use `0.0.0.0` for hosted)
+- **`ALLOWED_ORIGINS`** - Comma-separated list of allowed CORS origins (default: `http://localhost:3000,http://127.0.0.1:3000`, use `*` for public service)
+- **`PERPLEXITY_API_KEY`** - Your Perplexity API key (required)
+
 #### Using Docker
 
 ```bash
@@ -186,7 +195,7 @@ The server will be accessible at `http://localhost:8080/mcp`
 ```bash
 npm install
 npm run build
-PORT=8080 npm run start:http
+npm run start:http
 ```
 
 Connect your MCP client to: `http://localhost:8080/mcp`

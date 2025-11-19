@@ -14,10 +14,27 @@ if (!PERPLEXITY_API_KEY) {
 
 const app = express();
 const PORT = parseInt(process.env.PORT || "8080", 10);
+const BIND_ADDRESS = process.env.BIND_ADDRESS || "127.0.0.1";
+const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS?.split(",") || [
+  "http://localhost:3000",
+  "http://127.0.0.1:3000",
+];
 
 // CORS configuration for browser-based MCP clients
 app.use(cors({
-  origin: "*",
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    
+    if (ALLOWED_ORIGINS.includes("*")) {
+      return callback(null, true);
+    }
+    
+    if (ALLOWED_ORIGINS.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`Origin ${origin} not allowed by CORS`));
+    }
+  },
   exposedHeaders: ["Mcp-Session-Id", "mcp-protocol-version"],
   allowedHeaders: ["Content-Type", "mcp-session-id"],
 }));
@@ -127,8 +144,9 @@ app.get("/health", (req, res) => {
 /**
  * Start the HTTP server
  */
-app.listen(PORT, () => {
-  console.log(`Perplexity MCP Server listening on http://localhost:${PORT}/mcp`);
+app.listen(PORT, BIND_ADDRESS, () => {
+  console.log(`Perplexity MCP Server listening on http://${BIND_ADDRESS}:${PORT}/mcp`);
+  console.log(`Allowed origins: ${ALLOWED_ORIGINS.join(", ")}`);
 }).on("error", (error) => {
   console.error("Server error:", error);
   process.exit(1);
