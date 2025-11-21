@@ -19,7 +19,6 @@ async function main() {
     const server = createPerplexityServer();
     const transport = new StdioServerTransport();
     await server.connect(transport);
-    console.error("Perplexity MCP Server running on stdio with Ask, Research, Reason, and Search tools");
   } catch (error) {
     console.error("Fatal error running server:", error);
     process.exit(1);
