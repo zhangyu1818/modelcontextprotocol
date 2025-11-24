@@ -81,9 +81,9 @@ Or add to your `claude.json`:
 }
 ```
 
-### Cursor / VS Code
+### Cursor
 
-Add to your `mcp.json` (Cursor) or `.vscode/mcp.json` (VS Code):
+Add to your `mcp.json` (Cursor):
 
 ```json
 {
@@ -92,11 +92,32 @@ Add to your `mcp.json` (Cursor) or `.vscode/mcp.json` (VS Code):
       "command": "npx",
       "args": ["-y", "@perplexity-ai/mcp-server"],
       "env": {
-        "PERPLEXITY_API_KEY": "your_key_here",
-        "PERPLEXITY_TIMEOUT_MS": "600000"
+        "PERPLEXITY_API_KEY": "your_key_here"
       }
     }
   }
+}
+```
+
+### VS Code
+
+Add to your `.vscode/mcp.json` (VS Code):
+
+```json
+{
+	"servers": {
+		"perplexity": {
+			"type": "stdio",
+			"command": "npx",
+			"args": [
+				"-y",
+				"@perplexity-ai/mcp-server"
+			],
+			"env": {
+				"PERPLEXITY_API_KEY": "your_key_here"
+			}
+		}
+	}
 }
 ```
 
