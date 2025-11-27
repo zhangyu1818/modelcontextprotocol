@@ -39,6 +39,14 @@ function getLogLevel(): LogLevel {
 
 const currentLogLevel = getLogLevel();
 
+function safeStringify(obj: unknown): string {
+  try {
+    return JSON.stringify(obj);
+  } catch {
+    return "[Unstringifiable]";
+  }
+}
+
 /**
  * Formats a log message with timestamp and level
  */
@@ -47,7 +55,7 @@ function formatMessage(level: LogLevel, message: string, meta?: Record<string, u
   const levelName = LOG_LEVEL_NAMES[level];
 
   if (meta && Object.keys(meta).length > 0) {
-    return `[${timestamp}] ${levelName}: ${message} ${JSON.stringify(meta)}`;
+    return `[${timestamp}] ${levelName}: ${message} ${safeStringify(meta)}`;
   }
 
   return `[${timestamp}] ${levelName}: ${message}`;

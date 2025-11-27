@@ -260,7 +260,7 @@ describe("Perplexity MCP Server", () => {
       const messages = [{ role: "user", content: "test" }];
 
       await expect(performChatCompletion(messages)).rejects.toThrow(
-        "missing or empty choices array"
+        "Invalid API response"
       );
     });
 
@@ -273,7 +273,7 @@ describe("Perplexity MCP Server", () => {
       const messages = [{ role: "user", content: "test" }];
 
       await expect(performChatCompletion(messages)).rejects.toThrow(
-        "missing message content"
+        "Invalid API response"
       );
     });
 
@@ -286,7 +286,7 @@ describe("Perplexity MCP Server", () => {
       const messages = [{ role: "user", content: "test" }];
 
       await expect(performChatCompletion(messages)).rejects.toThrow(
-        "missing or empty choices array"
+        "Invalid API response"
       );
     });
 
@@ -299,7 +299,7 @@ describe("Perplexity MCP Server", () => {
       const messages = [{ role: "user", content: "test" }];
 
       await expect(performChatCompletion(messages)).rejects.toThrow(
-        "missing message content"
+        "Invalid API response"
       );
     });
 
@@ -312,7 +312,7 @@ describe("Perplexity MCP Server", () => {
       const messages = [{ role: "user", content: "test" }];
 
       await expect(performChatCompletion(messages)).rejects.toThrow(
-        "missing or empty choices array"
+        "Invalid API response"
       );
     });
 
@@ -325,7 +325,7 @@ describe("Perplexity MCP Server", () => {
       const messages = [{ role: "user", content: "test" }];
 
       await expect(performChatCompletion(messages)).rejects.toThrow(
-        "missing message content"
+        "Invalid API response"
       );
     });
 
@@ -359,10 +359,10 @@ describe("Perplexity MCP Server", () => {
       } as Response);
 
       const messages = [{ role: "user", content: "test" }];
-      const result = await performChatCompletion(messages);
 
-      expect(result).toBe("Response");
-      expect(result).not.toContain("Citations:");
+      await expect(performChatCompletion(messages)).rejects.toThrow(
+        "Invalid API response"
+      );
     });
   });
 
@@ -378,7 +378,7 @@ describe("Perplexity MCP Server", () => {
       const messages = [{ role: "user", content: "test" }];
 
       await expect(performChatCompletion(messages)).rejects.toThrow(
-        "Failed to parse JSON response"
+        "Invalid API response"
       );
     });
 

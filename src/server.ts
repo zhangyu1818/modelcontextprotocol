@@ -5,10 +5,10 @@ import type {
   Message,
   ChatCompletionResponse,
   SearchResponse,
-  SearchResult,
   SearchRequestBody,
   UndiciRequestOptions
 } from "./types.js";
+import { ChatCompletionResponseSchema, SearchResponseSchema } from "./validation.js";
 
 // Retrieve the Perplexity API key from environment variables
 const PERPLEXITY_API_KEY = process.env.PERPLEXITY_API_KEY;
@@ -47,10 +47,10 @@ export async function proxyAwareFetch(url: string, options: RequestInit = {}): P
     const response = await undiciFetch(url, undiciOptions);
     // Cast to native Response type for compatibility
     return response as unknown as Response;
-  } else {
-    // Use native fetch when no proxy is configured
-    return fetch(url, options);
   }
+
+  // Use native fetch when no proxy is configured
+  return fetch(url, options);
 }
 
 /**
@@ -156,23 +156,15 @@ export async function performChatCompletion(
     );
   }
 
-  // Attempt to parse the JSON response from the API
   let data: ChatCompletionResponse;
   try {
-    data = await response.json() as ChatCompletionResponse;
-  } catch (jsonError) {
-    throw new Error(`Failed to parse JSON response from Perplexity API: ${jsonError}`);
-  }
-
-  // Validate response structure
-  if (!data.choices || !Array.isArray(data.choices) || data.choices.length === 0) {
-    throw new Error("Invalid API response: missing or empty choices array");
+    const json = await response.json();
+    data = ChatCompletionResponseSchema.parse(json);
+  } catch (error) {
+    throw new Error(`Invalid API response: ${error}`);
   }
 
   const firstChoice = data.choices[0];
-  if (!firstChoice.message || typeof firstChoice.message.content !== 'string') {
-    throw new Error("Invalid API response: missing message content");
-  }
 
   // Directly retrieve the main message content from the response
   let messageContent = firstChoice.message.content;
@@ -290,9 +282,10 @@ export async function performSearch(
 
   let data: SearchResponse;
   try {
-    data = await response.json() as SearchResponse;
-  } catch (jsonError) {
-    throw new Error(`Failed to parse JSON response from Perplexity Search API: ${jsonError}`);
+    const json = await response.json();
+    data = SearchResponseSchema.parse(json);
+  } catch (error) {
+    throw new Error(`Invalid API response: ${error}`);
   }
 
   return formatSearchResults(data);
@@ -301,7 +294,7 @@ export async function performSearch(
 /**
  * Creates and configures the Perplexity MCP server with all tools.
  * This factory function is transport-agnostic and returns a configured server instance.
- * 
+ *
  * @returns The configured MCP server instance
  */
 export function createPerplexityServer() {

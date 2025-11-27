@@ -2,6 +2,8 @@
  * Type definitions for the Perplexity MCP Server
  */
 
+import type { ProxyAgent } from "undici";
+
 /**
  * Represents a single message in a conversation
  */
@@ -10,32 +12,32 @@ export interface Message {
   content: string;
 }
 
-/**
- * Response structure from Perplexity chat completion API
- */
+export interface ChatMessage {
+  content: string;
+  role?: string;
+}
+
+export interface ChatChoice {
+  message: ChatMessage;
+  finish_reason?: string;
+  index?: number;
+}
+
+export interface TokenUsage {
+  prompt_tokens?: number;
+  completion_tokens?: number;
+  total_tokens?: number;
+}
+
 export interface ChatCompletionResponse {
-  choices: Array<{
-    message: {
-      content: string;
-      role?: string;
-    };
-    finish_reason?: string;
-    index?: number;
-  }>;
+  choices: ChatChoice[];
   citations?: string[];
-  usage?: {
-    prompt_tokens?: number;
-    completion_tokens?: number;
-    total_tokens?: number;
-  };
+  usage?: TokenUsage;
   id?: string;
   model?: string;
   created?: number;
 }
 
-/**
- * A single search result from the Perplexity Search API
- */
 export interface SearchResult {
   title: string;
   url: string;
@@ -44,20 +46,16 @@ export interface SearchResult {
   score?: number;
 }
 
-/**
- * Response structure from Perplexity Search API
- */
+export interface SearchUsage {
+  tokens?: number;
+}
+
 export interface SearchResponse {
   results: SearchResult[];
   query?: string;
-  usage?: {
-    tokens?: number;
-  };
+  usage?: SearchUsage;
 }
 
-/**
- * Request body for Perplexity Search API
- */
 export interface SearchRequestBody {
   query: string;
   max_results: number;
@@ -65,10 +63,7 @@ export interface SearchRequestBody {
   country?: string;
 }
 
-/**
- * Options for undici fetch with proxy support
- */
 export interface UndiciRequestOptions {
-  [key: string]: any;
-  dispatcher?: any; // ProxyAgent type from undici
+  [key: string]: unknown;
+  dispatcher?: ProxyAgent;
 }
