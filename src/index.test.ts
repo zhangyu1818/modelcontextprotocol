@@ -48,7 +48,7 @@ describe("Perplexity MCP Server", () => {
     });
 
     it("should handle missing results array", () => {
-      const mockData = {};
+      const mockData = {} as any;
       const formatted = formatSearchResults(mockData);
       expect(formatted).toBe("No search results found.");
     });
@@ -588,7 +588,7 @@ describe("Perplexity MCP Server", () => {
           { title: null, url: "https://example.com", snippet: undefined },
           { title: "Valid", url: null, snippet: "snippet", date: undefined },
         ],
-      };
+      } as any;
 
       const formatted = formatSearchResults(mockData);
 
