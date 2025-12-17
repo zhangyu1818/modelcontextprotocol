@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { stripThinkingTokens, getProxyUrl, proxyAwareFetch } from "./server.js";
+import { stripThinkingTokens, getProxyUrl, proxyAwareFetch, validateMessages } from "./server.js";
 
 describe("Server Utility Functions", () => {
   describe("stripThinkingTokens", () => {
@@ -189,6 +189,68 @@ describe("Server Utility Functions", () => {
 
       await expect(proxyAwareFetch("https://api.example.com/test"))
         .rejects.toThrow("Network error");
+    });
+  });
+
+  describe("validateMessages", () => {
+    it("should throw if messages is not an array", () => {
+      expect(() => validateMessages("not-an-array", "test_tool"))
+        .toThrow("Invalid arguments for test_tool: 'messages' must be an array");
+    });
+
+    it("should throw if messages is null", () => {
+      expect(() => validateMessages(null, "test_tool"))
+        .toThrow("'messages' must be an array");
+    });
+
+    it("should throw if message is not an object", () => {
+      expect(() => validateMessages(["string"], "test_tool"))
+        .toThrow("Invalid message at index 0: must be an object");
+    });
+
+    it("should throw if message is null", () => {
+      expect(() => validateMessages([null], "test_tool"))
+        .toThrow("Invalid message at index 0: must be an object");
+    });
+
+    it("should throw if role is missing", () => {
+      expect(() => validateMessages([{ content: "test" }], "test_tool"))
+        .toThrow("Invalid message at index 0: 'role' must be a string");
+    });
+
+    it("should throw if role is not a string", () => {
+      expect(() => validateMessages([{ role: 123, content: "test" }], "test_tool"))
+        .toThrow("Invalid message at index 0: 'role' must be a string");
+    });
+
+    it("should throw if content is missing", () => {
+      expect(() => validateMessages([{ role: "user" }], "test_tool"))
+        .toThrow("Invalid message at index 0: 'content' must be a string");
+    });
+
+    it("should throw if content is not a string", () => {
+      expect(() => validateMessages([{ role: "user", content: 123 }], "test_tool"))
+        .toThrow("Invalid message at index 0: 'content' must be a string");
+    });
+
+    it("should throw if content is null", () => {
+      expect(() => validateMessages([{ role: "user", content: null }], "test_tool"))
+        .toThrow("Invalid message at index 0: 'content' must be a string");
+    });
+
+    it("should pass for valid messages", () => {
+      expect(() => validateMessages([
+        { role: "user", content: "Hello" },
+        { role: "assistant", content: "Hi there" }
+      ], "test_tool")).not.toThrow();
+    });
+
+    it("should report correct index for invalid message", () => {
+      expect(() => validateMessages([
+        { role: "user", content: "valid" },
+        { role: "assistant", content: "also valid" },
+        { role: "user" } // no content
+      ], "test_tool")).toThrow("Invalid message at index 2: 'content' must be a string");
     });
   });
 });

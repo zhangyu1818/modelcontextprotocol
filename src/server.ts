@@ -61,7 +61,7 @@ export async function proxyAwareFetch(url: string, options: RequestInit = {}): P
  * @param {string} toolName - The name of the tool calling this validation (for error messages)
  * @throws {Error} If messages is not an array or if any message is invalid
  */
-function validateMessages(messages: unknown, toolName: string): asserts messages is Message[] {
+export function validateMessages(messages: unknown, toolName: string): asserts messages is Message[] {
   if (!Array.isArray(messages)) {
     throw new Error(`Invalid arguments for ${toolName}: 'messages' must be an array`);
   }
