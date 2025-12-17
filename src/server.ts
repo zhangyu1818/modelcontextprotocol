@@ -309,7 +309,7 @@ export async function performSearch(
 export function createPerplexityServer() {
   const server = new McpServer({
     name: "io.github.perplexityai/mcp-server",
-    version: "0.5.1",
+    version: "0.5.2",
   });
 
   // Register perplexity_ask tool
