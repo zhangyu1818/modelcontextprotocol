@@ -132,23 +132,18 @@ describe("Server Utility Functions", () => {
       expect(result).toBe(mockResponse);
     });
 
-    it("should use undici with proxy when proxy is configured", async () => {
+    it("should NOT use native fetch when proxy is configured", async () => {
       process.env.PERPLEXITY_PROXY = "http://proxy:8080";
 
-      const mockResponse = {
-        ok: true,
-        status: 200,
-        statusText: "OK",
-        json: async () => ({ data: "test" }),
-      };
+      global.fetch = vi.fn().mockResolvedValue(new Response("test"));
 
-      // We can't easily mock undici's ProxyAgent, but we can verify the function works
-      // This test verifies the code path executes without error
-      // In a real scenario, you'd want to test with a real proxy server
+      try {
+        await proxyAwareFetch("https://api.example.com/test");
+      } catch {
+        // Expected to fail - no proxy server is configured
+      }
 
-      // For now, just verify the function signature works
-      expect(proxyAwareFetch).toBeDefined();
-      expect(typeof proxyAwareFetch).toBe("function");
+      expect(global.fetch).not.toHaveBeenCalled();
     });
 
     it("should pass through request options to native fetch", async () => {
