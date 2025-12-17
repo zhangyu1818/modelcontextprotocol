@@ -48,7 +48,7 @@ describe("Perplexity MCP Server", () => {
     });
 
     it("should handle missing results array", () => {
-      const mockData = {};
+      const mockData = {} as any;
       const formatted = formatSearchResults(mockData);
       expect(formatted).toBe("No search results found.");
     });
@@ -248,6 +248,41 @@ describe("Perplexity MCP Server", () => {
         "Perplexity Search API error: 500 Internal Server Error"
       );
     });
+
+    it("should handle search timeout errors", async () => {
+      process.env.PERPLEXITY_TIMEOUT_MS = "100";
+
+      global.fetch = vi.fn().mockImplementation((_url, options) => {
+        return new Promise((resolve, reject) => {
+          const signal = options?.signal as AbortSignal;
+
+          if (signal) {
+            signal.addEventListener("abort", () => {
+              reject(new DOMException("The operation was aborted.", "AbortError"));
+            });
+          }
+
+          setTimeout(() => {
+            resolve({
+              ok: true,
+              json: async () => ({ results: [] }),
+            } as Response);
+          }, 200);
+        });
+      });
+
+      await expect(performSearch("test")).rejects.toThrow(
+        "Request timeout"
+      );
+    });
+
+    it("should handle search network errors", async () => {
+      global.fetch = vi.fn().mockRejectedValue(new Error("Network failure"));
+
+      await expect(performSearch("test")).rejects.toThrow(
+        "Network error while calling Perplexity Search API"
+      );
+    });
   });
 
   describe("API Response Validation", () => {
@@ -359,10 +394,10 @@ describe("Perplexity MCP Server", () => {
       } as Response);
 
       const messages = [{ role: "user", content: "test" }];
-      const result = await performChatCompletion(messages);
 
-      expect(result).toBe("Response");
-      expect(result).not.toContain("Citations:");
+      await expect(performChatCompletion(messages)).rejects.toThrow(
+        "Failed to parse JSON response"
+      );
     });
   });
 
@@ -588,7 +623,7 @@ describe("Perplexity MCP Server", () => {
           { title: null, url: "https://example.com", snippet: undefined },
           { title: "Valid", url: null, snippet: "snippet", date: undefined },
         ],
-      };
+      } as any;
 
       const formatted = formatSearchResults(mockData);
 
