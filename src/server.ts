@@ -161,7 +161,16 @@ export async function performChatCompletion(
     const json = await response.json();
     data = ChatCompletionResponseSchema.parse(json);
   } catch (error) {
-    throw new Error(`Invalid API response: ${error}`);
+    if (error instanceof z.ZodError) {
+      const issues = error.issues;
+      if (issues.some(i => i.path.includes('message') || i.path.includes('content'))) {
+        throw new Error("Invalid API response: missing message content");
+      }
+      if (issues.some(i => i.path.includes('choices'))) {
+        throw new Error("Invalid API response: missing or empty choices array");
+      }
+    }
+    throw new Error(`Failed to parse JSON response from Perplexity API: ${error}`);
   }
 
   const firstChoice = data.choices[0];
@@ -285,7 +294,7 @@ export async function performSearch(
     const json = await response.json();
     data = SearchResponseSchema.parse(json);
   } catch (error) {
-    throw new Error(`Invalid API response: ${error}`);
+    throw new Error(`Failed to parse JSON response from Perplexity Search API: ${error}`);
   }
 
   return formatSearchResults(data);
