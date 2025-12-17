@@ -43,6 +43,18 @@ describe("Server Utility Functions", () => {
       const result = stripThinkingTokens(content);
       expect(result).toBe("");
     });
+
+    it("should pass through unclosed think tag unchanged", () => {
+      const content = "Start <think>unclosed content";
+      const result = stripThinkingTokens(content);
+      expect(result).toBe("Start <think>unclosed content");
+    });
+
+    it("should pass through orphan closing tag unchanged", () => {
+      const content = "Some </think> content here";
+      const result = stripThinkingTokens(content);
+      expect(result).toBe("Some </think> content here");
+    });
   });
 
   describe("getProxyUrl", () => {
