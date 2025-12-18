@@ -15,11 +15,8 @@ if (!PERPLEXITY_API_KEY) {
 
 const app = express();
 const PORT = parseInt(process.env.PORT || "8080", 10);
-const BIND_ADDRESS = process.env.BIND_ADDRESS || "127.0.0.1";
-const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS?.split(",") || [
-  "http://localhost:3000",
-  "http://127.0.0.1:3000",
-];
+const BIND_ADDRESS = process.env.BIND_ADDRESS || "0.0.0.0";
+const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS?.split(",") || ["*"];
 
 // CORS configuration for browser-based MCP clients
 app.use(cors({
