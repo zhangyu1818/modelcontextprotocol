@@ -76,7 +76,7 @@ For manual setup, all these clients use the same `mcpServers` format:
 }
 ```
 
-## VS Code
+### VS Code
 
 We recommend using the one-click install badge at the top of this README for VS Code, or for manual setup, add to `.vscode/mcp.json`:
 
@@ -102,7 +102,6 @@ codex mcp add perplexity --env PERPLEXITY_API_KEY="your_key_here" -- npx -y @per
 ```
 
 ### Other MCP Clients
-
 
 Most clients can be manually configured to use the `mcpServers` wrapper in their configuration file (like Cursor). If your client doesn't work, check its documentation for the correct wrapper format.
 
@@ -137,7 +136,6 @@ If you'd rather use the standard variables, we support `HTTPS_PROXY` and `HTTP_P
 > The server checks proxy settings in this order: `PERPLEXITY_PROXY` → `HTTPS_PROXY` → `HTTP_PROXY`. If none are set, it connects directly to the internet.
 > URLs must include `https://`. Typical ports are `8080`, `3128`, and `80`.
 
-
 ### HTTP Server Deployment
 
 For cloud or shared deployments, you can run the server in HTTP mode:
@@ -169,7 +167,6 @@ npm run start:http
 ```
 
 Connect your MCP client to: `http://localhost:8080/mcp`
-
 
 ## Troubleshooting
 
