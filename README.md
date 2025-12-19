@@ -13,7 +13,7 @@ The official MCP server implementation for the Perplexity API Platform, providin
 ### **perplexity_search**
 Direct web search using the Perplexity Search API. Returns ranked search results with metadata, perfect for finding current information.
 
-### **perplexity_ask** 
+### **perplexity_ask**
 General-purpose conversational AI with real-time web search using the `sonar-pro` model. Great for quick questions and everyday searches.
 
 ### **perplexity_research**
@@ -30,61 +30,37 @@ Advanced reasoning and problem-solving using the `sonar-reasoning-pro` model. Pe
 ## Configuration
 
 ### Get Your API Key
+
 1. Get your Perplexity API Key from the [API Portal](https://www.perplexity.ai/account/api/group)
-2. Set it as an environment variable: `PERPLEXITY_API_KEY=your_key_here`
-3. (Optional) Set a timeout for requests: `PERPLEXITY_TIMEOUT_MS=600000`. The default is 5 minutes.
-4. (Optional) Set log level for debugging: `PERPLEXITY_LOG_LEVEL=DEBUG|INFO|WARN|ERROR`. The default is ERROR.
+2. Replace `your_key_here` in the configurations below with your API key
+3. (Optional) Set timeout: `PERPLEXITY_TIMEOUT_MS=600000` (default: 5 minutes)
+4. (Optional) Set log level: `PERPLEXITY_LOG_LEVEL=DEBUG|INFO|WARN|ERROR` (default: ERROR)
 
 ### Claude Code
 
-#### Option 1: Install via Plugin (Recommended)
+```bash
+claude mcp add perplexity --env PERPLEXITY_API_KEY="your_key_here" -- npx -y @perplexity-ai/mcp-server
+```
 
-The easiest way to get started with Perplexity in Claude Code, set your API key:
+Or install via plugin:
 ```bash
 export PERPLEXITY_API_KEY="your_key_here"
-```
-Then:
-```bash
-# Open Claude Code
 claude
-
-# Add the Perplexity marketplace
-/plugin marketplace add perplexityai/modelcontextprotocol
-
-# Install the plugin
-/plugin install perplexity
+# Then run: /plugin marketplace add perplexityai/modelcontextprotocol
+# Then run: /plugin install perplexity
 ```
 
-#### Option 2: Manual Configuration
+### Cursor, Claude Desktop & Windsurf
 
-Run in your terminal:
+We recommend using the one-click install badge at the top of this README for Cursor.
 
-```bash
-claude mcp add perplexity --transport stdio --env PERPLEXITY_API_KEY=your_key_here -- npx -y perplexity-mcp
-```
+For manual setup, all these clients use the same `mcpServers` format:
 
-Or add to your `claude.json`:
-
-```json
-"mcpServers": {
-  "perplexity": {
-    "type": "stdio",
-    "command": "npx",
-    "args": [
-      "-y",
-      "perplexity-mcp"
-    ],
-    "env": {
-      "PERPLEXITY_API_KEY": "your_key_here",
-      "PERPLEXITY_TIMEOUT_MS": "600000"
-    }
-  }
-}
-```
-
-### Cursor
-
-Add to your `mcp.json` (Cursor):
+| Client | Config File |
+|--------|-------------|
+| Cursor | `~/.cursor/mcp.json` |
+| Claude Desktop | `claude_desktop_config.json` |
+| Windsurf | `~/.codeium/windsurf/mcp_config.json` |
 
 ```json
 {
@@ -100,64 +76,35 @@ Add to your `mcp.json` (Cursor):
 }
 ```
 
-### VS Code
+## VS Code
 
-Add to your `.vscode/mcp.json` (VS Code):
-
-```json
-{
-	"servers": {
-		"perplexity": {
-			"type": "stdio",
-			"command": "npx",
-			"args": [
-				"-y",
-				"@perplexity-ai/mcp-server"
-			],
-			"env": {
-				"PERPLEXITY_API_KEY": "your_key_here"
-			}
-		}
-	}
-}
-```
-
-Or use the one-click install badges at the top of this README.
-
-### Codex
-
-Run in your terminal:
-
-```bash
-codex mcp add perplexity --env PERPLEXITY_API_KEY=your_key_here -- npx -y @perplexity-ai/mcp-server
-```
-
-### Claude Desktop
-
-Add to your `claude_desktop_config.json`:
+We recommend using the one-click install badge at the top of this README for VS Code, or for manual setup, add to `.vscode/mcp.json`:
 
 ```json
 {
-  "mcpServers": {
+  "servers": {
     "perplexity": {
+      "type": "stdio",
       "command": "npx",
       "args": ["-y", "@perplexity-ai/mcp-server"],
       "env": {
-        "PERPLEXITY_API_KEY": "your_key_here",
-        "PERPLEXITY_TIMEOUT_MS": "600000"
+        "PERPLEXITY_API_KEY": "your_key_here"
       }
     }
   }
 }
 ```
 
-### Other MCP Clients
-
-For any MCP-compatible client, use:
+### Codex
 
 ```bash
-npx @perplexity-ai/mcp-server
+codex mcp add perplexity --env PERPLEXITY_API_KEY="your_key_here" -- npx -y @perplexity-ai/mcp-server
 ```
+
+### Other MCP Clients
+
+
+Most clients can be manually configured to use the `mcpServers` wrapper in their configuration file (like Cursor). If your client doesn't work, check its documentation for the correct wrapper format.
 
 ### Proxy Setup (For Corporate Networks)
 
