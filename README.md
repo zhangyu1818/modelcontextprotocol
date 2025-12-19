@@ -52,7 +52,7 @@ claude
 
 ### Cursor, Claude Desktop & Windsurf
 
-Use the one-click install badges at the top of this README for Cursor.
+We recommend using the one-click install badge at the top of this README for Cursor.
 
 For manual setup, all these clients use the same `mcpServers` format:
 
@@ -78,7 +78,7 @@ For manual setup, all these clients use the same `mcpServers` format:
 
 ## VS Code
 
-Use the one-click install badge at the top of this README for VS Code, for manual setup, add to `.vscode/mcp.json`:
+We recommend using the one-click install badge at the top of this README for VS Code, or for manual setup, add to `.vscode/mcp.json`:
 
 ```json
 {
