@@ -32,14 +32,14 @@ Advanced reasoning and problem-solving using the `sonar-reasoning-pro` model. Pe
 ### Get Your API Key
 
 1. Get your Perplexity API Key from the [API Portal](https://www.perplexity.ai/account/api/group)
-2. Replace `your_key_here` in the configurations below with your key
+2. Replace `your_key_here` in the configurations below with your API key
 3. (Optional) Set timeout: `PERPLEXITY_TIMEOUT_MS=600000` (default: 5 minutes)
 4. (Optional) Set log level: `PERPLEXITY_LOG_LEVEL=DEBUG|INFO|WARN|ERROR` (default: ERROR)
 
 ### Claude Code
 
 ```bash
-claude mcp add perplexity --env PERPLEXITY_API_KEY=your_key_here -- npx -y @perplexity-ai/mcp-server
+claude mcp add perplexity --env PERPLEXITY_API_KEY="your_key_here" -- npx -y @perplexity-ai/mcp-server
 ```
 
 Or install via plugin:
@@ -98,7 +98,7 @@ We recommend using the one-click install badge at the top of this README for VS 
 ### Codex
 
 ```bash
-codex mcp add perplexity --env PERPLEXITY_API_KEY=your_key_here -- npx -y @perplexity-ai/mcp-server
+codex mcp add perplexity --env PERPLEXITY_API_KEY="your_key_here" -- npx -y @perplexity-ai/mcp-server
 ```
 
 ### Other MCP Clients
