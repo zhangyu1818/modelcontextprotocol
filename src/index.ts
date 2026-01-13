@@ -16,7 +16,7 @@ if (!PERPLEXITY_API_KEY) {
  */
 async function main() {
   try {
-    const server = createPerplexityServer();
+    const server = createPerplexityServer("local-mcp");
     const transport = new StdioServerTransport();
     await server.connect(transport);
   } catch (error) {

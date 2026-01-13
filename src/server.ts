@@ -104,7 +104,8 @@ export function stripThinkingTokens(content: string): string {
 export async function performChatCompletion(
   messages: Message[],
   model: string = "sonar-pro",
-  stripThinking: boolean = false
+  stripThinking: boolean = false,
+  serviceOrigin?: string
 ): Promise<string> {
   if (!PERPLEXITY_API_KEY) {
     throw new Error("PERPLEXITY_API_KEY environment variable is required");
@@ -125,12 +126,16 @@ export async function performChatCompletion(
 
   let response;
   try {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${PERPLEXITY_API_KEY}`,
+    };
+    if (serviceOrigin) {
+      headers["X-Service"] = serviceOrigin;
+    }
     response = await proxyAwareFetch(url.toString(), {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${PERPLEXITY_API_KEY}`,
-      },
+      headers,
       body: JSON.stringify(body),
       signal: controller.signal,
     });
@@ -236,7 +241,8 @@ export async function performSearch(
   query: string,
   maxResults: number = 10,
   maxTokensPerPage: number = 1024,
-  country?: string
+  country?: string,
+  serviceOrigin?: string
 ): Promise<string> {
   if (!PERPLEXITY_API_KEY) {
     throw new Error("PERPLEXITY_API_KEY environment variable is required");
@@ -258,12 +264,16 @@ export async function performSearch(
 
   let response;
   try {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${PERPLEXITY_API_KEY}`,
+    };
+    if (serviceOrigin) {
+      headers["X-Service"] = serviceOrigin;
+    }
     response = await proxyAwareFetch(url.toString(), {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${PERPLEXITY_API_KEY}`,
-      },
+      headers,
       body: JSON.stringify(body),
       signal: controller.signal,
     });
@@ -306,7 +316,7 @@ export async function performSearch(
  *
  * @returns The configured MCP server instance
  */
-export function createPerplexityServer() {
+export function createPerplexityServer(serviceOrigin?: string) {
   const server = new McpServer({
     name: "io.github.perplexityai/mcp-server",
     version: "0.5.2",
@@ -336,7 +346,7 @@ export function createPerplexityServer() {
     },
     async ({ messages }) => {
       validateMessages(messages, "perplexity_ask");
-      const result = await performChatCompletion(messages, "sonar-pro");
+      const result = await performChatCompletion(messages, "sonar-pro", false, serviceOrigin);
       return {
         content: [{ type: "text", text: result }],
         structuredContent: { response: result },
@@ -371,7 +381,7 @@ export function createPerplexityServer() {
     async ({ messages, strip_thinking }) => {
       validateMessages(messages, "perplexity_research");
       const stripThinking = typeof strip_thinking === "boolean" ? strip_thinking : false;
-      const result = await performChatCompletion(messages, "sonar-deep-research", stripThinking);
+      const result = await performChatCompletion(messages, "sonar-deep-research", stripThinking, serviceOrigin);
       return {
         content: [{ type: "text", text: result }],
         structuredContent: { response: result },
@@ -406,7 +416,7 @@ export function createPerplexityServer() {
     async ({ messages, strip_thinking }) => {
       validateMessages(messages, "perplexity_reason");
       const stripThinking = typeof strip_thinking === "boolean" ? strip_thinking : false;
-      const result = await performChatCompletion(messages, "sonar-reasoning-pro", stripThinking);
+      const result = await performChatCompletion(messages, "sonar-reasoning-pro", stripThinking, serviceOrigin);
       return {
         content: [{ type: "text", text: result }],
         structuredContent: { response: result },
@@ -444,7 +454,7 @@ export function createPerplexityServer() {
       const maxTokensPerPage = typeof max_tokens_per_page === "number" ? max_tokens_per_page : 1024;
       const countryCode = typeof country === "string" ? country : undefined;
       
-      const result = await performSearch(query, maxResults, maxTokensPerPage, countryCode);
+      const result = await performSearch(query, maxResults, maxTokensPerPage, countryCode, serviceOrigin);
       return {
         content: [{ type: "text", text: result }],
         structuredContent: { results: result },
