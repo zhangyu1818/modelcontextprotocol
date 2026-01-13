@@ -10,15 +10,8 @@ import type {
 } from "./types.js";
 import { ChatCompletionResponseSchema, SearchResponseSchema } from "./validation.js";
 
-// Retrieve the Perplexity API key from environment variables
 const PERPLEXITY_API_KEY = process.env.PERPLEXITY_API_KEY;
 
-/**
- * Gets the proxy URL from environment variables.
- * Checks PERPLEXITY_PROXY, HTTPS_PROXY, HTTP_PROXY in order.
- *
- * @returns {string | undefined} The proxy URL if configured, undefined otherwise
- */
 export function getProxyUrl(): string | undefined {
   return process.env.PERPLEXITY_PROXY || 
          process.env.HTTPS_PROXY || 
@@ -26,41 +19,22 @@ export function getProxyUrl(): string | undefined {
          undefined;
 }
 
-/**
- * Creates a proxy-aware fetch function.
- * Uses undici with ProxyAgent when a proxy is configured, otherwise uses native fetch.
- *
- * @param {string} url - The URL to fetch
- * @param {RequestInit} options - Fetch options
- * @returns {Promise<Response>} The fetch response
- */
 export async function proxyAwareFetch(url: string, options: RequestInit = {}): Promise<Response> {
   const proxyUrl = getProxyUrl();
 
   if (proxyUrl) {
-    // Use undici with ProxyAgent when proxy is configured
     const proxyAgent = new ProxyAgent(proxyUrl);
     const undiciOptions: UndiciRequestOptions = {
       ...options,
       dispatcher: proxyAgent,
     };
     const response = await undiciFetch(url, undiciOptions);
-    // Cast to native Response type for compatibility
     return response as unknown as Response;
   }
 
-  // Use native fetch when no proxy is configured
   return fetch(url, options);
 }
 
-/**
- * Validates an array of message objects for chat completion tools.
- * Ensures each message has a valid role and content field.
- *
- * @param {unknown} messages - The messages to validate
- * @param {string} toolName - The name of the tool calling this validation (for error messages)
- * @throws {Error} If messages is not an array or if any message is invalid
- */
 export function validateMessages(messages: unknown, toolName: string): asserts messages is Message[] {
   if (!Array.isArray(messages)) {
     throw new Error(`Invalid arguments for ${toolName}: 'messages' must be an array`);
@@ -80,27 +54,10 @@ export function validateMessages(messages: unknown, toolName: string): asserts m
   }
 }
 
-/**
- * Strips thinking tokens (content within <think>...</think> tags) from the response.
- * This helps reduce context usage when the thinking process is not needed.
- *
- * @param {string} content - The content to process
- * @returns {string} The content with thinking tokens removed
- */
 export function stripThinkingTokens(content: string): string {
   return content.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
 }
 
-/**
- * Performs a chat completion by sending a request to the Perplexity API.
- * Appends citations to the returned message content if they exist.
- *
- * @param {Message[]} messages - An array of message objects.
- * @param {string} model - The model to use for the completion.
- * @param {boolean} stripThinking - If true, removes <think>...</think> tags from the response.
- * @returns {Promise<string>} The chat completion result with appended citations.
- * @throws Will throw an error if the API request fails.
- */
 export async function performChatCompletion(
   messages: Message[],
   model: string = "sonar-pro",
@@ -114,7 +71,6 @@ export async function performChatCompletion(
   // Read timeout fresh each time to respect env var changes
   const TIMEOUT_MS = parseInt(process.env.PERPLEXITY_TIMEOUT_MS || "300000", 10);
 
-  // Construct the API endpoint URL and request body
   const url = new URL("https://api.perplexity.ai/chat/completions");
   const body = {
     model: model,
@@ -148,7 +104,6 @@ export async function performChatCompletion(
     throw new Error(`Network error while calling Perplexity API: ${error}`);
   }
 
-  // Check for non-successful HTTP status
   if (!response.ok) {
     let errorText;
     try {
@@ -180,15 +135,12 @@ export async function performChatCompletion(
 
   const firstChoice = data.choices[0];
 
-  // Directly retrieve the main message content from the response
   let messageContent = firstChoice.message.content;
 
-  // Strip thinking tokens if requested
   if (stripThinking) {
     messageContent = stripThinkingTokens(messageContent);
   }
 
-  // If citations are provided, append them to the message content
   if (data.citations && Array.isArray(data.citations) && data.citations.length > 0) {
     messageContent += "\n\nCitations:\n";
     data.citations.forEach((citation, index) => {
@@ -199,12 +151,6 @@ export async function performChatCompletion(
   return messageContent;
 }
 
-/**
- * Formats search results from the Perplexity Search API into a readable string.
- *
- * @param {SearchResponse} data - The search response data from the API.
- * @returns {string} Formatted search results.
- */
 export function formatSearchResults(data: SearchResponse): string {
   if (!data.results || !Array.isArray(data.results)) {
     return "No search results found.";
@@ -227,16 +173,6 @@ export function formatSearchResults(data: SearchResponse): string {
   return formattedResults;
 }
 
-/**
- * Performs a web search using the Perplexity Search API.
- *
- * @param {string} query - The search query string.
- * @param {number} maxResults - Maximum number of results to return (1-20).
- * @param {number} maxTokensPerPage - Maximum tokens to extract per webpage.
- * @param {string} country - Optional ISO country code for regional results.
- * @returns {Promise<string>} The formatted search results.
- * @throws Will throw an error if the API request fails.
- */
 export async function performSearch(
   query: string,
   maxResults: number = 10,
@@ -286,7 +222,6 @@ export async function performSearch(
     throw new Error(`Network error while calling Perplexity Search API: ${error}`);
   }
 
-  // Check for non-successful HTTP status
   if (!response.ok) {
     let errorText;
     try {
@@ -310,19 +245,12 @@ export async function performSearch(
   return formatSearchResults(data);
 }
 
-/**
- * Creates and configures the Perplexity MCP server with all tools.
- * This factory function is transport-agnostic and returns a configured server instance.
- *
- * @returns The configured MCP server instance
- */
 export function createPerplexityServer(serviceOrigin?: string) {
   const server = new McpServer({
     name: "io.github.perplexityai/mcp-server",
     version: "0.5.2",
   });
 
-  // Register perplexity_ask tool
   server.registerTool(
     "perplexity_ask",
     {
@@ -354,7 +282,6 @@ export function createPerplexityServer(serviceOrigin?: string) {
     }
   );
 
-  // Register perplexity_research tool
   server.registerTool(
     "perplexity_research",
     {
@@ -389,7 +316,6 @@ export function createPerplexityServer(serviceOrigin?: string) {
     }
   );
 
-  // Register perplexity_reason tool
   server.registerTool(
     "perplexity_reason",
     {
@@ -424,7 +350,6 @@ export function createPerplexityServer(serviceOrigin?: string) {
     }
   );
 
-  // Register perplexity_search tool
   server.registerTool(
     "perplexity_search",
     {

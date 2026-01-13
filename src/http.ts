@@ -6,7 +6,6 @@ import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/
 import { createPerplexityServer } from "./server.js";
 import { logger } from "./logger.js";
 
-// Check for required API key
 const PERPLEXITY_API_KEY = process.env.PERPLEXITY_API_KEY;
 if (!PERPLEXITY_API_KEY) {
   logger.error("PERPLEXITY_API_KEY environment variable is required");
@@ -41,10 +40,6 @@ app.use(express.json());
 
 const mcpServer = createPerplexityServer();
 
-/**
- * POST: client-to-server messages (requests, responses, notifications)
- * GET: SSE stream for server-to-client messages (notifications, requests)
- */
 app.all("/mcp", async (req, res) => {
   try {
     const transport = new StreamableHTTPServerTransport({
@@ -71,16 +66,10 @@ app.all("/mcp", async (req, res) => {
   }
 });
 
-/**
- * Health check endpoint
- */
 app.get("/health", (req, res) => {
   res.json({ status: "ok", service: "perplexity-mcp-server" });
 });
 
-/**
- * Start the HTTP server
- */
 app.listen(PORT, BIND_ADDRESS, () => {
   logger.info(`Perplexity MCP Server listening on http://${BIND_ADDRESS}:${PORT}/mcp`);
   logger.info(`Allowed origins: ${ALLOWED_ORIGINS.join(", ")}`);

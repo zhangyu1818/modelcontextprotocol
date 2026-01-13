@@ -1,12 +1,5 @@
-/**
- * Type definitions for the Perplexity MCP Server
- */
-
 import type { ProxyAgent } from "undici";
 
-/**
- * Represents a single message in a conversation
- */
 export interface Message {
   role: string;
   content: string;
