@@ -248,8 +248,26 @@ export async function performSearch(
 export function createPerplexityServer(serviceOrigin?: string) {
   const server = new McpServer({
     name: "io.github.perplexityai/mcp-server",
-    version: "0.6.0",
+    version: "0.6.1",
   });
+
+  const messageSchema = z.object({
+    role: z.string().describe("Role of the message (e.g., system, user, assistant)"),
+    content: z.string().describe("The content of the message"),
+  });
+  
+  const messagesField = z.array(messageSchema).describe("Array of conversation messages");
+  
+  const stripThinkingField = z.boolean().optional()
+    .describe("If true, removes <think>...</think> tags and their content from the response to save context tokens. Default is false.");
+  
+  const responseOutputSchema = {
+    response: z.string().describe("The response from Perplexity"),
+  };
+
+  // Input schemas
+  const messagesOnlyInputSchema = { messages: messagesField };
+  const messagesWithStripThinkingInputSchema = { messages: messagesField, strip_thinking: stripThinkingField };
 
   server.registerTool(
     "perplexity_ask",
@@ -258,25 +276,19 @@ export function createPerplexityServer(serviceOrigin?: string) {
       description: "Engages in a conversation using the Sonar API. " +
         "Accepts an array of messages (each with a role and content) " +
         "and returns a chat completion response from the Perplexity model.",
-      inputSchema: {
-        messages: z.array(z.object({
-          role: z.string().describe("Role of the message (e.g., system, user, assistant)"),
-          content: z.string().describe("The content of the message"),
-        })).describe("Array of conversation messages"),
-      },
-      outputSchema: {
-        response: z.string().describe("The chat completion response"),
-      },
+      inputSchema: messagesOnlyInputSchema as any,
+      outputSchema: responseOutputSchema as any,
       annotations: {
         readOnlyHint: true,
         openWorldHint: true,
       },
     },
-    async ({ messages }) => {
+    async (args: any) => {
+      const { messages } = args as { messages: Message[] };
       validateMessages(messages, "perplexity_ask");
       const result = await performChatCompletion(messages, "sonar-pro", false, serviceOrigin);
       return {
-        content: [{ type: "text", text: result }],
+        content: [{ type: "text" as const, text: result }],
         structuredContent: { response: result },
       };
     }
@@ -289,28 +301,20 @@ export function createPerplexityServer(serviceOrigin?: string) {
       description: "Performs deep research using the Perplexity API. " +
         "Accepts an array of messages (each with a role and content) " +
         "and returns a comprehensive research response with citations.",
-      inputSchema: {
-        messages: z.array(z.object({
-          role: z.string().describe("Role of the message (e.g., system, user, assistant)"),
-          content: z.string().describe("The content of the message"),
-        })).describe("Array of conversation messages"),
-        strip_thinking: z.boolean().optional()
-          .describe("If true, removes <think>...</think> tags and their content from the response to save context tokens. Default is false."),
-      },
-      outputSchema: {
-        response: z.string().describe("The research response"),
-      },
+      inputSchema: messagesWithStripThinkingInputSchema as any,
+      outputSchema: responseOutputSchema as any,
       annotations: {
         readOnlyHint: true,
         openWorldHint: true,
       },
     },
-    async ({ messages, strip_thinking }) => {
+    async (args: any) => {
+      const { messages, strip_thinking } = args as { messages: Message[]; strip_thinking?: boolean };
       validateMessages(messages, "perplexity_research");
       const stripThinking = typeof strip_thinking === "boolean" ? strip_thinking : false;
       const result = await performChatCompletion(messages, "sonar-deep-research", stripThinking, serviceOrigin);
       return {
-        content: [{ type: "text", text: result }],
+        content: [{ type: "text" as const, text: result }],
         structuredContent: { response: result },
       };
     }
@@ -323,32 +327,38 @@ export function createPerplexityServer(serviceOrigin?: string) {
       description: "Performs reasoning tasks using the Perplexity API. " +
         "Accepts an array of messages (each with a role and content) " +
         "and returns a well-reasoned response using the sonar-reasoning-pro model.",
-      inputSchema: {
-        messages: z.array(z.object({
-          role: z.string().describe("Role of the message (e.g., system, user, assistant)"),
-          content: z.string().describe("The content of the message"),
-        })).describe("Array of conversation messages"),
-        strip_thinking: z.boolean().optional()
-          .describe("If true, removes <think>...</think> tags and their content from the response to save context tokens. Default is false."),
-      },
-      outputSchema: {
-        response: z.string().describe("The reasoning response"),
-      },
+      inputSchema: messagesWithStripThinkingInputSchema as any,
+      outputSchema: responseOutputSchema as any,
       annotations: {
         readOnlyHint: true,
         openWorldHint: true,
       },
     },
-    async ({ messages, strip_thinking }) => {
+    async (args: any) => {
+      const { messages, strip_thinking } = args as { messages: Message[]; strip_thinking?: boolean };
       validateMessages(messages, "perplexity_reason");
       const stripThinking = typeof strip_thinking === "boolean" ? strip_thinking : false;
       const result = await performChatCompletion(messages, "sonar-reasoning-pro", stripThinking, serviceOrigin);
       return {
-        content: [{ type: "text", text: result }],
+        content: [{ type: "text" as const, text: result }],
         structuredContent: { response: result },
       };
     }
   );
+
+  const searchInputSchema = {
+    query: z.string().describe("Search query string"),
+    max_results: z.number().min(1).max(20).optional()
+      .describe("Maximum number of results to return (1-20, default: 10)"),
+    max_tokens_per_page: z.number().min(256).max(2048).optional()
+      .describe("Maximum tokens to extract per webpage (default: 1024)"),
+    country: z.string().optional()
+      .describe("ISO 3166-1 alpha-2 country code for regional results (e.g., 'US', 'GB')"),
+  };
+  
+  const searchOutputSchema = {
+    results: z.string().describe("Formatted search results"),
+  };
 
   server.registerTool(
     "perplexity_search",
@@ -357,31 +367,27 @@ export function createPerplexityServer(serviceOrigin?: string) {
       description: "Performs web search using the Perplexity Search API. " +
         "Returns ranked search results with titles, URLs, snippets, and metadata. " +
         "Perfect for finding up-to-date facts, news, or specific information.",
-      inputSchema: {
-        query: z.string().describe("Search query string"),
-        max_results: z.number().min(1).max(20).optional()
-          .describe("Maximum number of results to return (1-20, default: 10)"),
-        max_tokens_per_page: z.number().min(256).max(2048).optional()
-          .describe("Maximum tokens to extract per webpage (default: 1024)"),
-        country: z.string().optional()
-          .describe("ISO 3166-1 alpha-2 country code for regional results (e.g., 'US', 'GB')"),
-      },
-      outputSchema: {
-        results: z.string().describe("Formatted search results"),
-      },
+      inputSchema: searchInputSchema as any,
+      outputSchema: searchOutputSchema as any,
       annotations: {
         readOnlyHint: true,
         openWorldHint: true,
       },
     },
-    async ({ query, max_results, max_tokens_per_page, country }) => {
+    async (args: any) => {
+      const { query, max_results, max_tokens_per_page, country } = args as {
+        query: string;
+        max_results?: number;
+        max_tokens_per_page?: number;
+        country?: string;
+      };
       const maxResults = typeof max_results === "number" ? max_results : 10;
       const maxTokensPerPage = typeof max_tokens_per_page === "number" ? max_tokens_per_page : 1024;
       const countryCode = typeof country === "string" ? country : undefined;
       
       const result = await performSearch(query, maxResults, maxTokensPerPage, countryCode, serviceOrigin);
       return {
-        content: [{ type: "text", text: result }],
+        content: [{ type: "text" as const, text: result }],
         structuredContent: { results: result },
       };
     }
