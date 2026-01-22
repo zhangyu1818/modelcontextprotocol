@@ -4,13 +4,13 @@ import { fetch as undiciFetch, ProxyAgent } from "undici";
 import type {
   Message,
   ChatCompletionResponse,
-  SearchResponse,
-  SearchRequestBody,
   UndiciRequestOptions
 } from "./types.js";
-import { ChatCompletionResponseSchema, SearchResponseSchema } from "./validation.js";
+import { ChatCompletionResponseSchema } from "./validation.js";
 
 const PERPLEXITY_API_KEY = process.env.PERPLEXITY_API_KEY;
+const DEFAULT_API_ENDPOINT = "https://openrouter.ai/api/v1/chat/completions";
+const DEFAULT_MODEL = "perplexity/sonar";
 
 export function getProxyUrl(): string | undefined {
   return process.env.PERPLEXITY_PROXY || 
@@ -54,14 +54,8 @@ export function validateMessages(messages: unknown, toolName: string): asserts m
   }
 }
 
-export function stripThinkingTokens(content: string): string {
-  return content.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
-}
-
 export async function performChatCompletion(
   messages: Message[],
-  model: string = "sonar-pro",
-  stripThinking: boolean = false,
   serviceOrigin?: string
 ): Promise<string> {
   if (!PERPLEXITY_API_KEY) {
@@ -71,7 +65,9 @@ export async function performChatCompletion(
   // Read timeout fresh each time to respect env var changes
   const TIMEOUT_MS = parseInt(process.env.PERPLEXITY_TIMEOUT_MS || "300000", 10);
 
-  const url = new URL("https://api.perplexity.ai/chat/completions");
+  const apiEndpoint = process.env.API_ENDPOINT || DEFAULT_API_ENDPOINT;
+  const model = process.env.MODEL || DEFAULT_MODEL;
+  const url = new URL(apiEndpoint);
   const body = {
     model: model,
     messages: messages,
@@ -99,9 +95,9 @@ export async function performChatCompletion(
   } catch (error) {
     clearTimeout(timeoutId);
     if (error instanceof Error && error.name === "AbortError") {
-      throw new Error(`Request timeout: Perplexity API did not respond within ${TIMEOUT_MS}ms. Consider increasing PERPLEXITY_TIMEOUT_MS.`);
+      throw new Error(`Request timeout: API endpoint did not respond within ${TIMEOUT_MS}ms. Consider increasing PERPLEXITY_TIMEOUT_MS.`);
     }
-    throw new Error(`Network error while calling Perplexity API: ${error}`);
+    throw new Error(`Network error while calling API endpoint: ${error}`);
   }
 
   if (!response.ok) {
@@ -112,7 +108,7 @@ export async function performChatCompletion(
       errorText = "Unable to parse error response";
     }
     throw new Error(
-      `Perplexity API error: ${response.status} ${response.statusText}\n${errorText}`
+      `API error: ${response.status} ${response.statusText}\n${errorText}`
     );
   }
 
@@ -130,16 +126,12 @@ export async function performChatCompletion(
         throw new Error("Invalid API response: missing or empty choices array");
       }
     }
-    throw new Error(`Failed to parse JSON response from Perplexity API: ${error}`);
+    throw new Error(`Failed to parse JSON response from API endpoint: ${error}`);
   }
 
   const firstChoice = data.choices[0];
 
   let messageContent = firstChoice.message.content;
-
-  if (stripThinking) {
-    messageContent = stripThinkingTokens(messageContent);
-  }
 
   if (data.citations && Array.isArray(data.citations) && data.citations.length > 0) {
     messageContent += "\n\nCitations:\n";
@@ -151,103 +143,9 @@ export async function performChatCompletion(
   return messageContent;
 }
 
-export function formatSearchResults(data: SearchResponse): string {
-  if (!data.results || !Array.isArray(data.results)) {
-    return "No search results found.";
-  }
-
-  let formattedResults = `Found ${data.results.length} search results:\n\n`;
-
-  data.results.forEach((result, index) => {
-    formattedResults += `${index + 1}. **${result.title}**\n`;
-    formattedResults += `   URL: ${result.url}\n`;
-    if (result.snippet) {
-      formattedResults += `   ${result.snippet}\n`;
-    }
-    if (result.date) {
-      formattedResults += `   Date: ${result.date}\n`;
-    }
-    formattedResults += `\n`;
-  });
-
-  return formattedResults;
-}
-
-export async function performSearch(
-  query: string,
-  maxResults: number = 10,
-  maxTokensPerPage: number = 1024,
-  country?: string,
-  serviceOrigin?: string
-): Promise<string> {
-  if (!PERPLEXITY_API_KEY) {
-    throw new Error("PERPLEXITY_API_KEY environment variable is required");
-  }
-
-  // Read timeout fresh each time to respect env var changes
-  const TIMEOUT_MS = parseInt(process.env.PERPLEXITY_TIMEOUT_MS || "300000", 10);
-
-  const url = new URL("https://api.perplexity.ai/search");
-  const body: SearchRequestBody = {
-    query: query,
-    max_results: maxResults,
-    max_tokens_per_page: maxTokensPerPage,
-    ...(country && { country }),
-  };
-
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
-
-  let response;
-  try {
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${PERPLEXITY_API_KEY}`,
-    };
-    if (serviceOrigin) {
-      headers["X-Service"] = serviceOrigin;
-    }
-    response = await proxyAwareFetch(url.toString(), {
-      method: "POST",
-      headers,
-      body: JSON.stringify(body),
-      signal: controller.signal,
-    });
-    clearTimeout(timeoutId);
-  } catch (error) {
-    clearTimeout(timeoutId);
-    if (error instanceof Error && error.name === "AbortError") {
-      throw new Error(`Request timeout: Perplexity Search API did not respond within ${TIMEOUT_MS}ms. Consider increasing PERPLEXITY_TIMEOUT_MS.`);
-    }
-    throw new Error(`Network error while calling Perplexity Search API: ${error}`);
-  }
-
-  if (!response.ok) {
-    let errorText;
-    try {
-      errorText = await response.text();
-    } catch (parseError) {
-      errorText = "Unable to parse error response";
-    }
-    throw new Error(
-      `Perplexity Search API error: ${response.status} ${response.statusText}\n${errorText}`
-    );
-  }
-
-  let data: SearchResponse;
-  try {
-    const json = await response.json();
-    data = SearchResponseSchema.parse(json);
-  } catch (error) {
-    throw new Error(`Failed to parse JSON response from Perplexity Search API: ${error}`);
-  }
-
-  return formatSearchResults(data);
-}
-
 export function createPerplexityServer(serviceOrigin?: string) {
   const server = new McpServer({
-    name: "io.github.perplexityai/mcp-server",
+    name: "io.github.zhangyu1818/server-perplexity-ask",
     version: "0.6.1",
   });
 
@@ -258,24 +156,20 @@ export function createPerplexityServer(serviceOrigin?: string) {
   
   const messagesField = z.array(messageSchema).describe("Array of conversation messages");
   
-  const stripThinkingField = z.boolean().optional()
-    .describe("If true, removes <think>...</think> tags and their content from the response to save context tokens. Default is false.");
-  
   const responseOutputSchema = {
-    response: z.string().describe("The response from Perplexity"),
+    response: z.string().describe("The response from the chat completion API"),
   };
 
   // Input schemas
   const messagesOnlyInputSchema = { messages: messagesField };
-  const messagesWithStripThinkingInputSchema = { messages: messagesField, strip_thinking: stripThinkingField };
 
   server.registerTool(
     "perplexity_ask",
     {
       title: "Ask Perplexity",
-      description: "Engages in a conversation using the Sonar API. " +
+      description: "Engages in a conversation using the configured API endpoint. " +
         "Accepts an array of messages (each with a role and content) " +
-        "and returns a chat completion response from the Perplexity model.",
+        "and returns a chat completion response from the selected model.",
       inputSchema: messagesOnlyInputSchema as any,
       outputSchema: responseOutputSchema as any,
       annotations: {
@@ -286,113 +180,13 @@ export function createPerplexityServer(serviceOrigin?: string) {
     async (args: any) => {
       const { messages } = args as { messages: Message[] };
       validateMessages(messages, "perplexity_ask");
-      const result = await performChatCompletion(messages, "sonar-pro", false, serviceOrigin);
+      const result = await performChatCompletion(messages, serviceOrigin);
       return {
         content: [{ type: "text" as const, text: result }],
         structuredContent: { response: result },
-      };
-    }
-  );
-
-  server.registerTool(
-    "perplexity_research",
-    {
-      title: "Deep Research",
-      description: "Performs deep research using the Perplexity API. " +
-        "Accepts an array of messages (each with a role and content) " +
-        "and returns a comprehensive research response with citations.",
-      inputSchema: messagesWithStripThinkingInputSchema as any,
-      outputSchema: responseOutputSchema as any,
-      annotations: {
-        readOnlyHint: true,
-        openWorldHint: true,
-      },
-    },
-    async (args: any) => {
-      const { messages, strip_thinking } = args as { messages: Message[]; strip_thinking?: boolean };
-      validateMessages(messages, "perplexity_research");
-      const stripThinking = typeof strip_thinking === "boolean" ? strip_thinking : false;
-      const result = await performChatCompletion(messages, "sonar-deep-research", stripThinking, serviceOrigin);
-      return {
-        content: [{ type: "text" as const, text: result }],
-        structuredContent: { response: result },
-      };
-    }
-  );
-
-  server.registerTool(
-    "perplexity_reason",
-    {
-      title: "Advanced Reasoning",
-      description: "Performs reasoning tasks using the Perplexity API. " +
-        "Accepts an array of messages (each with a role and content) " +
-        "and returns a well-reasoned response using the sonar-reasoning-pro model.",
-      inputSchema: messagesWithStripThinkingInputSchema as any,
-      outputSchema: responseOutputSchema as any,
-      annotations: {
-        readOnlyHint: true,
-        openWorldHint: true,
-      },
-    },
-    async (args: any) => {
-      const { messages, strip_thinking } = args as { messages: Message[]; strip_thinking?: boolean };
-      validateMessages(messages, "perplexity_reason");
-      const stripThinking = typeof strip_thinking === "boolean" ? strip_thinking : false;
-      const result = await performChatCompletion(messages, "sonar-reasoning-pro", stripThinking, serviceOrigin);
-      return {
-        content: [{ type: "text" as const, text: result }],
-        structuredContent: { response: result },
-      };
-    }
-  );
-
-  const searchInputSchema = {
-    query: z.string().describe("Search query string"),
-    max_results: z.number().min(1).max(20).optional()
-      .describe("Maximum number of results to return (1-20, default: 10)"),
-    max_tokens_per_page: z.number().min(256).max(2048).optional()
-      .describe("Maximum tokens to extract per webpage (default: 1024)"),
-    country: z.string().optional()
-      .describe("ISO 3166-1 alpha-2 country code for regional results (e.g., 'US', 'GB')"),
-  };
-  
-  const searchOutputSchema = {
-    results: z.string().describe("Formatted search results"),
-  };
-
-  server.registerTool(
-    "perplexity_search",
-    {
-      title: "Search the Web",
-      description: "Performs web search using the Perplexity Search API. " +
-        "Returns ranked search results with titles, URLs, snippets, and metadata. " +
-        "Perfect for finding up-to-date facts, news, or specific information.",
-      inputSchema: searchInputSchema as any,
-      outputSchema: searchOutputSchema as any,
-      annotations: {
-        readOnlyHint: true,
-        openWorldHint: true,
-      },
-    },
-    async (args: any) => {
-      const { query, max_results, max_tokens_per_page, country } = args as {
-        query: string;
-        max_results?: number;
-        max_tokens_per_page?: number;
-        country?: string;
-      };
-      const maxResults = typeof max_results === "number" ? max_results : 10;
-      const maxTokensPerPage = typeof max_tokens_per_page === "number" ? max_tokens_per_page : 1024;
-      const countryCode = typeof country === "string" ? country : undefined;
-      
-      const result = await performSearch(query, maxResults, maxTokensPerPage, countryCode, serviceOrigin);
-      return {
-        content: [{ type: "text" as const, text: result }],
-        structuredContent: { results: result },
       };
     }
   );
 
   return server.server;
 }
-

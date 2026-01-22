@@ -31,31 +31,6 @@ export interface ChatCompletionResponse {
   created?: number;
 }
 
-export interface SearchResult {
-  title: string;
-  url: string;
-  snippet?: string;
-  date?: string;
-  score?: number;
-}
-
-export interface SearchUsage {
-  tokens?: number;
-}
-
-export interface SearchResponse {
-  results: SearchResult[];
-  query?: string;
-  usage?: SearchUsage;
-}
-
-export interface SearchRequestBody {
-  query: string;
-  max_results: number;
-  max_tokens_per_page: number;
-  country?: string;
-}
-
 export interface UndiciRequestOptions {
   [key: string]: unknown;
   dispatcher?: ProxyAgent;

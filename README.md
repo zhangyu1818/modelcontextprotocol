@@ -1,31 +1,17 @@
 # Perplexity API Platform MCP Server
 
-[![Install in Cursor](https://custom-icon-badges.demolab.com/badge/Install_in_Cursor-000000?style=for-the-badge&logo=cursor-ai-white)](https://cursor.com/en/install-mcp?name=perplexity&config=eyJ0eXBlIjoic3RkaW8iLCJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkBwZXJwbGV4aXR5LWFpL21jcC1zZXJ2ZXIiXSwiZW52Ijp7IlBFUlBMRVhJVFlfQVBJX0tFWSI6IiJ9fQ==)
+[![Install in Cursor](https://custom-icon-badges.demolab.com/badge/Install_in_Cursor-000000?style=for-the-badge&logo=cursor-ai-white)](https://cursor.com/en/install-mcp?name=perplexity-ask&config=eyJ0eXBlIjoic3RkaW8iLCJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkB6aGFuZ3l1MTgxOC9zZXJ2ZXItcGVycGxleGl0eS1hc2siXSwiZW52Ijp7IlBFUlBMRVhJVFlfQVBJX0tFWSI6IiJ9fQ==)
 &nbsp;
-[![Install in VS Code](https://custom-icon-badges.demolab.com/badge/Install_in_VS_Code-007ACC?style=for-the-badge&logo=vsc&logoColor=white)](https://vscode.dev/redirect/mcp/install?name=perplexity&config=%7B%22type%22%3A%22stdio%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40perplexity-ai%2Fmcp-server%22%5D%2C%22env%22%3A%7B%22PERPLEXITY_API_KEY%22%3A%22%22%7D%7D)
+[![Install in VS Code](https://custom-icon-badges.demolab.com/badge/Install_in_VS_Code-007ACC?style=for-the-badge&logo=vsc&logoColor=white)](https://vscode.dev/redirect/mcp/install?name=perplexity-ask&config=%7B%22type%22%3A%22stdio%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40zhangyu1818/server-perplexity-ask%22%5D%2C%22env%22%3A%7B%22PERPLEXITY_API_KEY%22%3A%22%22%7D%7D)
 &nbsp;
-[![npm version](https://img.shields.io/npm/v/%40perplexity-ai%2Fmcp-server?style=for-the-badge&logo=npm&logoColor=white&color=CB3837)](https://www.npmjs.com/package/@perplexity-ai/mcp-server)
+[![npm version](https://img.shields.io/npm/v/%40zhangyu1818%2Fserver-perplexity-ask?style=for-the-badge&logo=npm&logoColor=white&color=CB3837)](https://www.npmjs.com/package/@zhangyu1818/server-perplexity-ask)
 
-The official MCP server implementation for the Perplexity API Platform, providing AI assistants with real-time web search, reasoning, and research capabilities through Sonar models and the Search API.
+Single-tool MCP server for Perplexity chat completions via a configurable API endpoint (default: OpenRouter).
 
 ## Available Tools
 
-### **perplexity_search**
-Direct web search using the Perplexity Search API. Returns ranked search results with metadata, perfect for finding current information.
-
 ### **perplexity_ask**
-General-purpose conversational AI with real-time web search using the `sonar-pro` model. Great for quick questions and everyday searches.
-
-### **perplexity_research**
-Deep, comprehensive research using the `sonar-deep-research` model. Ideal for thorough analysis and detailed reports.
-
-### **perplexity_reason**
-Advanced reasoning and problem-solving using the `sonar-reasoning-pro` model. Perfect for complex analytical tasks.
-
-> [!TIP]
-> Available as an optional parameter for **perplexity_reason** and **perplexity_research**: `strip_thinking`
->
-> Set to `true` to remove `<think>...</think>` tags from the response, saving context tokens. Default: `false`
+General-purpose conversational AI using the default `perplexity/sonar` model. Override the API endpoint with `API_ENDPOINT` and model with `MODEL`.
 
 ## Configuration
 
@@ -33,13 +19,15 @@ Advanced reasoning and problem-solving using the `sonar-reasoning-pro` model. Pe
 
 1. Get your Perplexity API Key from the [API Portal](https://www.perplexity.ai/account/api/group)
 2. Replace `your_key_here` in the configurations below with your API key
-3. (Optional) Set timeout: `PERPLEXITY_TIMEOUT_MS=600000` (default: 5 minutes)
-4. (Optional) Set log level: `PERPLEXITY_LOG_LEVEL=DEBUG|INFO|WARN|ERROR` (default: ERROR)
+3. (Optional) Set API endpoint: `API_ENDPOINT=https://openrouter.ai/api/v1/chat/completions`
+4. (Optional) Set model: `MODEL=perplexity/sonar`
+5. (Optional) Set timeout: `PERPLEXITY_TIMEOUT_MS=600000` (default: 5 minutes)
+6. (Optional) Set log level: `PERPLEXITY_LOG_LEVEL=DEBUG|INFO|WARN|ERROR` (default: ERROR)
 
 ### Claude Code
 
 ```bash
-claude mcp add perplexity --env PERPLEXITY_API_KEY="your_key_here" -- npx -y @perplexity-ai/mcp-server
+claude mcp add perplexity-ask --env PERPLEXITY_API_KEY="your_key_here" -- npx -y @zhangyu1818/server-perplexity-ask
 ```
 
 Or install via plugin:
@@ -65,9 +53,9 @@ For manual setup, all these clients use the same `mcpServers` format:
 ```json
 {
   "mcpServers": {
-    "perplexity": {
+    "perplexity-ask": {
       "command": "npx",
-      "args": ["-y", "@perplexity-ai/mcp-server"],
+      "args": ["-y", "@zhangyu1818/server-perplexity-ask"],
       "env": {
         "PERPLEXITY_API_KEY": "your_key_here"
       }
@@ -83,10 +71,10 @@ We recommend using the one-click install badge at the top of this README for VS 
 ```json
 {
   "servers": {
-    "perplexity": {
+    "perplexity-ask": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "@perplexity-ai/mcp-server"],
+      "args": ["-y", "@zhangyu1818/server-perplexity-ask"],
       "env": {
         "PERPLEXITY_API_KEY": "your_key_here"
       }
@@ -98,7 +86,7 @@ We recommend using the one-click install badge at the top of this README for VS 
 ### Codex
 
 ```bash
-codex mcp add perplexity --env PERPLEXITY_API_KEY="your_key_here" -- npx -y @perplexity-ai/mcp-server
+codex mcp add perplexity-ask --env PERPLEXITY_API_KEY="your_key_here" -- npx -y @zhangyu1818/server-perplexity-ask
 ```
 
 ### Other MCP Clients
@@ -145,6 +133,8 @@ For cloud or shared deployments, run the server in HTTP mode.
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `PERPLEXITY_API_KEY` | Your Perplexity API key | *Required* |
+| `API_ENDPOINT` | Chat completions API endpoint | `https://openrouter.ai/api/v1/chat/completions` |
+| `MODEL` | Model name to request | `perplexity/sonar` |
 | `PORT` | HTTP server port | `8080` |
 | `BIND_ADDRESS` | Network interface to bind to | `0.0.0.0` |
 | `ALLOWED_ORIGINS` | CORS origins (comma-separated) | `*` |
@@ -171,10 +161,9 @@ The server will be accessible at `http://localhost:8080/mcp`
 - **Connection Errors**: Check your internet connection and API key validity
 - **Tool Not Found**: Make sure the package is installed and the command path is correct
 - **Timeout Errors**: For very long research queries, set `PERPLEXITY_TIMEOUT_MS` to a higher value
-- **Proxy Issues**: Verify your `PERPLEXITY_PROXY` or `HTTPS_PROXY` setup and ensure `api.perplexity.ai` isn't blocked by your firewall.
+- **Proxy Issues**: Verify your `PERPLEXITY_PROXY` or `HTTPS_PROXY` setup and ensure your API endpoint isn't blocked by your firewall.
 - **EOF / Initialize Errors**: Some strict MCP clients fail because `npx` writes installation messages to stdout. Use `npx -yq` instead of `npx -y` to suppress this output.
 
 For support, visit [community.perplexity.ai](https://community.perplexity.ai) or [file an issue](https://github.com/perplexityai/modelcontextprotocol/issues).
 
 ---
-

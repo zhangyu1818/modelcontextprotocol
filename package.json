@@ -1,8 +1,8 @@
 {
-  "name": "@perplexity-ai/mcp-server",
+  "name": "@zhangyu1818/server-perplexity-ask",
   "version": "0.6.1",
-  "mcpName": "io.github.perplexityai/mcp-server",
-  "description": "Real-time web search, reasoning, and research through Perplexity's API",
+  "mcpName": "io.github.zhangyu1818/server-perplexity-ask",
+  "description": "Single-tool MCP server for Perplexity chat completions",
   "keywords": [
     "ai",
     "perplexity",

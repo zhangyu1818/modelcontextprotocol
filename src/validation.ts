@@ -25,21 +25,3 @@ export const ChatCompletionResponseSchema = z.object({
   model: z.string().optional(),
   created: z.number().optional(),
 });
-
-export const SearchResultSchema = z.object({
-  title: z.string(),
-  url: z.string(),
-  snippet: z.string().optional(),
-  date: z.string().optional(),
-  score: z.number().optional(),
-});
-
-export const SearchUsageSchema = z.object({
-  tokens: z.number().optional(),
-});
-
-export const SearchResponseSchema = z.object({
-  results: z.array(SearchResultSchema),
-  query: z.string().optional(),
-  usage: SearchUsageSchema.optional(),
-});
